@@ -1,0 +1,29 @@
+# 你需要在登录账号之后获取 cookie
+# 如果你使用 e-hentai，则 igneous 值不需填写
+# You need to get the following cookie value after logging into your account.
+# If you are using e-hentai site, the igneous value is not required.
+cookies:
+  ipb_member_id: 'YOUR_IPB_MEMBER_ID'
+  ipb_pass_hash: 'YOUR_IPB_PASS_HASH'
+  igneous: 'YOUR_IGNEOUS_IF_YOU_ARE_USING_EXHENTAI_SITE'
+# 如果你不知道这项是干什么的，不要动它
+# If you don't know what this is for, do not change it.
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
+# 如果你在中国大陆，你有很高的可能性需要设置代理。这里是一份为 Clash 编写的示例
+# There is a high probability that you will need to set up a proxy if you are in mainland China. Here is an example for Clash.
+# proxy:
+#   enable: true
+#   url: http://localhost:7890
+proxy:
+  enable: false
+save_path: 你的文件存储路径_YOUR_BACKUP_PATH
+# 有两个选项供你选择
+# There are two options for you.
+# e-hentai.org
+# exhentai.org
+website: e-hentai.org
+# 并行下载的连接数
+# 强烈建议不要设置高于 3 的数字
+# The number of parallel downloads.
+# It is strongly recommended not to set a number higher than 3.
+connect_limit: 3
