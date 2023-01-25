@@ -12,11 +12,11 @@ async def get(url: str, config: dict, data: str = None, retry_time: int = 5):
             if data is None:
                 async with session.get(url, proxy=config['proxy']['url'] if config['proxy']['enable'] else None) \
                         as resp:
-                    return await resp.text()
+                    return await resp.read()
             else:
                 async with session.post(url, data=data,
                                         proxy=config['proxy']['url'] if config['proxy']['enable'] else None) as resp:
-                    return await resp.text()
+                    return await resp.read()
         except BaseException as e:
             logger.exception(e)
             if retry_time > 0:
