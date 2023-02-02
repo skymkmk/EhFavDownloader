@@ -29,15 +29,20 @@ async def _get_info(gal_info: tuple, config: dict):
             content = await get(url, config)
             page = etree.HTML(content)
             if len(page.xpath("//div[@id='gdt']/div[@class='gdtm']")) == 0:
-                if len(page.xpath("//div[@class='d']/p[1]")) != 0:
-                    logger.warning(page.xpath("//div[@class='d']/p[1]/text()")[0])
-                    with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
-                        conn.execute("UPDATE doujinshi SET finished = 2 WHERE gid = ?", (gal_info[0],))
-                    return
+                if len(page.xpath("//div[@id='gdt']/div[@class='gdtl']")) == 0:
+                    if len(page.xpath("//div[@class='d']/p[1]")) != 0:
+                        logger.warning(page.xpath("//div[@class='d']/p[1]/text()")[0])
+                        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+                            conn.execute("UPDATE doujinshi SET finished = 2 WHERE gid = ?", (gal_info[0],))
+                        return
+                    else:
+                        logger.error(content)
+                        exit(1)
                 else:
-                    logger.error(content)
-                    exit(1)
-            for i in page.xpath("//div[@id='gdt']/div[@class='gdtm']"):
+                    imgs = page.xpath("//div[@id='gdt']/div[@class='gdtl']")
+            else:
+                imgs = page.xpath("//div[@id='gdt']/div[@class='gdtm']")
+            for i in imgs:
                 img_info.append(i.xpath('.//a/@href')[0])
             next_gal_list = page.xpath("//div[@class='gtb']//tr/td[last()]/a")
             if len(next_gal_list) == 0:
