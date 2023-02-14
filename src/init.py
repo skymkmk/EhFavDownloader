@@ -10,8 +10,10 @@ from src.utils import get
 
 @logger.catch
 def init(config: dict):
+    working_dir = os.path.split(os.path.realpath(__file__))[0]
+    db_dir = os.path.join(working_dir, 'data.db')
     # New database structure
-    with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+    with sqlite3.connect(db_dir) as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS category (id integer NOT NULL PRIMARY KEY AUTOINCREMENT,"
                      "name text NOT NULL)")
         conn.execute("CREATE TABLE IF NOT EXISTS doujinshi (gid integer NOT NULL PRIMARY KEY, title text NOT NULL,"
@@ -56,7 +58,7 @@ def init(config: dict):
         if flag:
             os.mkdir(os.path.join(config['save_path'], f"{idx + 1}-{name}"))
         # Update database for category
-        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+        with sqlite3.connect(db_dir) as conn:
             result = conn.execute("SELECT * FROM category WHERE id = ?", (idx + 1,)).fetchall()
             if len(result) == 0:
                 conn.execute("INSERT INTO category (name) VALUES(?)", (name,))

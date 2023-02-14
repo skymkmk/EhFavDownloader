@@ -45,6 +45,8 @@ from src.utils import get
 
 @logger.catch
 def update_data(config: dict):
+    working_dir = os.path.split(os.path.realpath(__file__))[0]
+    db_dir = os.path.join(working_dir, 'data.db')
     for i in range(0, 10):
         flag = True
         url = f"https://{config['website']}/favorites.php?favcat={i}"
@@ -66,7 +68,7 @@ def update_data(config: dict):
                     try:
                         gid = int(re.findall(f"^https://{config['website']}/g/([0-9]*)/.*", gal_url)[0])
                         gal_token = re.findall(f"^https://{config['website']}/g/[0-9]*/(\\w*)/?", gal_url)[0]
-                        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+                        with sqlite3.connect(db_dir) as conn:
                             result = conn.execute("SELECT * FROM doujinshi WHERE gid = ?", (gid,)).fetchall()
                             if len(result) == 0:
                                 conn.execute("INSERT INTO doujinshi (gid, title, token, category_id)"

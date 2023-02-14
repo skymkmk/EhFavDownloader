@@ -16,10 +16,12 @@ from .DownloaderExceptions import Error509
 
 retry_times = 5
 flag = True
+working_dir = os.path.split(os.path.realpath(__file__))[0]
+db_dir = os.path.join(working_dir, 'data.db')
 
 
 async def _get_info(gal_info: tuple, config: dict):
-    with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+    with sqlite3.connect(db_dir) as conn:
         img_info = conn.execute("SELECT * FROM img WHERE gid = ?", (gal_info[0],)).fetchall()
     if len(img_info) == 0:
         logger.info(f"Getting information for {gal_info[1]}")
@@ -32,7 +34,7 @@ async def _get_info(gal_info: tuple, config: dict):
                 if len(page.xpath("//div[@id='gdt']/div[@class='gdtl']")) == 0:
                     if len(page.xpath("//div[@class='d']/p[1]")) != 0:
                         logger.warning(page.xpath("//div[@class='d']/p[1]/text()")[0])
-                        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+                        with sqlite3.connect(db_dir) as conn:
                             conn.execute("UPDATE doujinshi SET finished = 2 WHERE gid = ?", (gal_info[0],))
                         return
                     else:
@@ -52,7 +54,7 @@ async def _get_info(gal_info: tuple, config: dict):
         img_info = [(re.findall(f"https://{config['website']}/s/(\\w*)/.*", value)[0], idx, gal_info[0],)
                     for idx, value in enumerate(img_info)]
         for i in img_info:
-            with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+            with sqlite3.connect(db_dir) as conn:
                 result = conn.execute("SELECT * FROM img WHERE id = ? and page_num = ? and gid = ?",
                                       (i[0], i[1], gal_info[0],)).fetchall()
                 if len(result) == 0:
@@ -61,7 +63,7 @@ async def _get_info(gal_info: tuple, config: dict):
                 else:
                     conn.execute("UPDATE img SET id = ? WHERE page_num = ? and gid = ?", (i[0], i[1], gal_info[0]))
                     conn.commit()
-        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+        with sqlite3.connect(db_dir) as conn:
             conn.execute("UPDATE doujinshi SET page_num = ? WHERE gid = ?", (len(img_info), gal_info[0],))
             conn.commit()
         return img_info
@@ -90,7 +92,7 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, config:
         with open(save_path, 'wb') as f:
             f.write(img)
         retry_times = 5
-        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+        with sqlite3.connect(db_dir) as conn:
             conn.execute("UPDATE img SET finished = 1 WHERE id = ? and page_num = ? and gid = ?",
                          (img_info[0], img_info[1], img_info[2],))
             conn.commit()
@@ -117,10 +119,10 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, config:
 @logger.catch
 async def download(config: dict):
     global flag
-    with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+    with sqlite3.connect(db_dir) as conn:
         result = conn.execute('SELECT * FROM doujinshi WHERE finished = 0').fetchall()
     for i in result:
-        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+        with sqlite3.connect(db_dir) as conn:
             category_name = conn.execute('SELECT name FROM category WHERE id = ?', (i[4],)).fetchall()[0][0]
         path = re.sub(r'''[\\/:*?"<>|]''', '', i[1])
         path = f"{config['save_path']}/{i[4]}-{category_name}/{i[0]}-{path}"
@@ -135,7 +137,7 @@ async def download(config: dict):
                     tasks = [asyncio.create_task(_async_download_img(path, session, config, j, i[1])) for j in img_info]
                     await asyncio.wait(tasks)
             if flag:
-                with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+                with sqlite3.connect(db_dir) as conn:
                     img_info = conn.execute("SELECT * FROM img WHERE gid = ?", (i[0],)).fetchall()
                 if len(img_info) != 0:
                     with open(f"{path}/.ehviewer", 'w') as f:
@@ -150,12 +152,12 @@ async def download(config: dict):
                         else:
                             f.write('40\n')
                         f.write(str(len(img_info)) + '\n')
-                        with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+                        with sqlite3.connect(db_dir) as conn:
                             result = conn.execute("SELECT page_num, id FROM img WHERE gid = ?", (i[0],)).fetchall()
                         result.sort(key=lambda x: x[0])
                         for j in result:
                             f.write(f"{j[0]} {j[1]}\n")
-                    with sqlite3.connect(os.path.join(os.getcwd(), 'data.db')) as conn:
+                    with sqlite3.connect(db_dir) as conn:
                         conn.execute("UPDATE doujinshi SET finished = 1 WHERE gid = ?", (i[0],))
                         conn.commit()
                     logger.success(f"Gallery {i[0]} {i[1]} download finished.")

@@ -8,11 +8,13 @@ from loguru import logger
 from src import *
 
 if __name__ == '__main__':
-    if not os.path.exists('./logs'):
-        os.mkdir('./logs')
-    logger.add(f"./logs/{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')}.log", level="WARNING")
+    working_dir = os.path.split(os.path.realpath(__file__))[0]
+    if not os.path.exists(os.path.join(working_dir, 'logs')):
+        os.mkdir(os.path.join(working_dir, 'logs'))
+    logger.add(os.path.join(working_dir, "logs",
+                            f"{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')}.log"), level="WARNING")
     try:
-        with open('./config.yaml', 'r', encoding='UTF-8') as f:
+        with open(os.path.join(working_dir, 'config.yaml'), 'r', encoding='UTF-8') as f:
             config = yaml.safe_load(f)
             logger.success('Config loaded.')
     except FileNotFoundError as e:
