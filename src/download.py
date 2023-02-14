@@ -11,13 +11,13 @@ import filetype.filetype
 import lxml.etree as etree
 from loguru import logger
 
+import src.config
 from src.utils import get
 from .DownloaderExceptions import Error509
 
 retry_times = 5
 flag = True
-working_dir = os.path.split(os.path.realpath(__file__))[0]
-db_dir = os.path.join(working_dir, 'data.db')
+db_dir = src.config.db_dir
 
 
 async def _get_info(gal_info: tuple, config: dict):

@@ -6,6 +6,7 @@ import sqlite3
 from loguru import logger
 from lxml.etree import HTML
 
+import src.config
 from src.utils import get
 
 
@@ -45,8 +46,7 @@ from src.utils import get
 
 @logger.catch
 def update_data(config: dict):
-    working_dir = os.path.split(os.path.realpath(__file__))[0]
-    db_dir = os.path.join(working_dir, 'data.db')
+    db_dir = src.config.db_dir
     for i in range(0, 10):
         flag = True
         url = f"https://{config['website']}/favorites.php?favcat={i}"

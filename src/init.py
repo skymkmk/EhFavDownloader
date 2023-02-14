@@ -5,13 +5,13 @@ import sqlite3
 from loguru import logger
 from lxml.etree import HTML
 
+import src.config
 from src.utils import get
 
 
 @logger.catch
 def init(config: dict):
-    working_dir = os.path.split(os.path.realpath(__file__))[0]
-    db_dir = os.path.join(working_dir, 'data.db')
+    db_dir = src.config.db_dir
     # New database structure
     with sqlite3.connect(db_dir) as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS category (id integer NOT NULL PRIMARY KEY AUTOINCREMENT,"

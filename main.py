@@ -8,7 +8,7 @@ from loguru import logger
 from src import *
 
 if __name__ == '__main__':
-    working_dir = os.path.split(os.path.realpath(__file__))[0]
+    working_dir = config.working_dir
     if not os.path.exists(os.path.join(working_dir, 'logs')):
         os.mkdir(os.path.join(working_dir, 'logs'))
     logger.add(os.path.join(working_dir, "logs",
