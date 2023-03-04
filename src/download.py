@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import math
 import os
+import platform
 import re
 import sqlite3
 import time
@@ -124,8 +125,40 @@ async def download(config: dict):
     for i in result:
         with sqlite3.connect(db_dir) as conn:
             category_name = conn.execute('SELECT name FROM category WHERE id = ?', (i[4],)).fetchall()[0][0]
+        # Replace the illegal characters
         path = re.sub(r'''[\\/:*?"<>|]''', '', i[1])
-        path = f"{config['save_path']}/{i[4]}-{category_name}/{i[0]}-{path}"
+        # Limit the folder name length to 255 (bytes for Linux, characters for Windows / macOS) and the path length to
+        # 259 characters (Windows) or 1023 bytes (macOS) or 4095 bytes (Linux) due to the limit of file system.
+        # Long path extensions supported in Windows 10 1607 and later will not be supported because Windows Explorer
+        # does not support long paths and because of compatibility issues.
+        path = f"{i[0]}-{path}"
+        root = os.path.join(config['save_path'], f'{i[4]}-{category_name}')
+        os_brand = platform.system()
+        if os_brand == 'Windows':
+            path_length_limit = 259
+        elif os_brand == 'Darwin':
+            path_length_limit = 1023
+        elif os_brand == 'Linux':
+            path_length_limit = 4095
+        else:
+            path_length_limit = 4095
+            # logger.warning(f"Unknown operating system detected. OS name: {os_brand}. There may have some problem when"
+            #                f"writing files.")
+        if os_brand in ['Windows', 'Darwin']:
+            if len(path) > 255:
+                path = path[: 255]
+        else:
+            if len(path.encode()) > 255:
+                path = path.encode()[: 255].decode(errors='ignore')
+        # Because the path does not contain / at the end, here subtract one more.
+        length_limit = path_length_limit - len(root) - 1
+        if os_brand == 'Windows':
+            if len(path) > length_limit:
+                path = path[: length_limit]
+        else:
+            if len(path.encode()) > length_limit:
+                path = path.encode()[: length_limit].decode(errors='ignore')
+        path = os.path.join(root, path)
         if not os.path.exists(path):
             os.mkdir(path)
         img_info = await _get_info(i, config)
@@ -162,4 +195,3 @@ async def download(config: dict):
                         conn.commit()
                     logger.success(f"Gallery {i[0]} {i[1]} download finished.")
             flag = True
-
