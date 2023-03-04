@@ -150,12 +150,13 @@ async def download(config: dict):
         else:
             if len(path.encode()) > 255:
                 path = path.encode()[: 255].decode(errors='ignore')
-        # Because the path does not contain / at the end, here subtract one more.
-        length_limit = path_length_limit - len(root) - 1
         if os_brand == 'Windows':
+            # Because the path does not contain / at the end, here subtract one more. The following is the same as here.
+            length_limit = path_length_limit - len(root) - 1
             if len(path) > length_limit:
                 path = path[: length_limit]
         else:
+            length_limit = path_length_limit - len(root.encode()) - 1
             if len(path.encode()) > length_limit:
                 path = path.encode()[: length_limit].decode(errors='ignore')
         path = os.path.join(root, path)
