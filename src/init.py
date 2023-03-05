@@ -41,7 +41,7 @@ def init(config: dict):
     fav_tree = HTML(fav_page)
     # Check if the fav page meets the requirements
     if len(fav_tree.xpath("//div[@class='nosel']/div[@class='fp']")) == 0:
-        logger.error(fav_page)
+        logger.error(fav_page.decode())
         exit(1)
     # Iterate through all collection pages
     for idx, node in enumerate(fav_tree.xpath("//div[@class='nosel']/div[@class='fp']")):

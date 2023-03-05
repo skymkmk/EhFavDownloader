@@ -26,7 +26,7 @@ def update_data(config: dict):
             if 0 in [len(titles), len(urls)]:
                 notice = page.xpath("//div[@class='ido']/p/text()")
                 if len(notice) != 1:
-                    logger.error(content)
+                    logger.error(content.decode())
                     exit(1)
                 else:
                     logger.info(f"Not found any favorites in category {i + 1}. Message: {notice[0]}")
@@ -53,5 +53,5 @@ def update_data(config: dict):
             if len(next_page) == 0:
                 flag = False
             else:
-                url = next_page[0].xpath('./@href')[0]
+                url = next_page[0].xpath('./@href')[0] + '&inline_set=dm_e'
     logger.success("Update favourites info success.")
