@@ -27,7 +27,7 @@ def init(config: dict):
     # New save path if not exists
     if not os.path.exists(config['save_path']):
         os.makedirs(config['save_path'])
-    dirs = os.listdir(config['save_path'])
+    dirs = [i for i in os.listdir(config['save_path']) if os.path.isdir(os.path.join(config['save_path'], i))]
     tmp = []
     # Detect unrelated pages
     for i in dirs:
