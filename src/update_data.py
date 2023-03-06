@@ -8,18 +8,19 @@ from lxml.etree import HTML
 import src.config
 from src.utils import get
 
+config = src.config.Config()
+db_dir = src.config.db_dir
 
 @logger.catch
-def update_data(config: dict):
-    db_dir = src.config.db_dir
+def update_data():
     for i in range(0, 10):
         flag = True
-        url = f"https://{config['website']}/favorites.php?favcat={i}&inline_set=dm_e"
+        url = f"https://{config.website}/favorites.php?favcat={i}&inline_set=dm_e"
         page_num = 0
         while flag:
             page_num += 1
             logger.info(f'Updating category {i + 1}, page {page_num}')
-            content = asyncio.run(get(url, config))
+            content = asyncio.run(get(url))
             page = HTML(content)
             titles = page.xpath("//form[@id='favform']/table/tr//div[@class='glink']/text()")
             urls = page.xpath("//form[@id='favform']/table/tr//div[contains(@class, 'glname')]/../@href")
@@ -33,8 +34,8 @@ def update_data(config: dict):
             # Get gallery information
             for title, url in zip(titles, urls):
                 try:
-                    gid = int(re.findall(f"^https://{config['website']}/g/([0-9]*)/.*", url)[0])
-                    gal_token = re.findall(rf"^https://{config['website']}/g/[0-9]*/(\w*)/?", url)[0]
+                    gid = int(re.findall(f"^https://{config.website}/g/([0-9]*)/.*", url)[0])
+                    gal_token = re.findall(rf"^https://{config.website}/g/[0-9]*/(\w*)/?", url)[0]
                     with sqlite3.connect(db_dir) as conn:
                         result = conn.execute("SELECT * FROM doujinshi WHERE gid = ?", (gid,)).fetchall()
                         if len(result) == 0:

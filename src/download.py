@@ -15,21 +15,23 @@ from loguru import logger
 import src.config
 from src.utils import get
 from .DownloaderExceptions import Error509
+from .config import Config
 
-retry_times = 5
-flag = True
+config = Config()
 db_dir = src.config.db_dir
+flag = True
+retry_times = 5
 
 
-async def _get_info(gal_info: tuple, config: dict):
+async def _get_info(gal_info: tuple):
     with sqlite3.connect(db_dir) as conn:
         img_info = conn.execute("SELECT * FROM img WHERE gid = ?", (gal_info[0],)).fetchall()
     if len(img_info) == 0:
         logger.info(f"Getting information for {gal_info[1]}")
         info_flag = True
-        url = f"https://{config['website']}/g/{gal_info[0]}/{gal_info[3]}"
+        url = f"https://{config.website}/g/{gal_info[0]}/{gal_info[3]}"
         while info_flag:
-            content = await get(url, config)
+            content = await get(url)
             page = etree.HTML(content)
             if len(page.xpath("//div[@id='gdt']/div[@class='gdtm']")) == 0:
                 if len(page.xpath("//div[@id='gdt']/div[@class='gdtl']")) == 0:
@@ -52,7 +54,7 @@ async def _get_info(gal_info: tuple, config: dict):
                 info_flag = False
             else:
                 url = next_gal_list[0].xpath('./@href')[0]
-        img_info = [(re.findall(f"https://{config['website']}/s/(\\w*)/.*", value)[0], idx, gal_info[0],)
+        img_info = [(re.findall(f"https://{config.website}/s/(\\w*)/.*", value)[0], idx, gal_info[0],)
                     for idx, value in enumerate(img_info)]
         for i in img_info:
             with sqlite3.connect(db_dir) as conn:
@@ -73,17 +75,17 @@ async def _get_info(gal_info: tuple, config: dict):
         return img_info
 
 
-async def _async_download_img(path: str, session: aiohttp.ClientSession, config: dict, img_info: tuple, gal_name: str):
+async def _async_download_img(path: str, session: aiohttp.ClientSession, img_info: tuple, gal_name: str):
     global retry_times
     global flag
-    url = f"https://{config['website']}/s/{img_info[0]}/{img_info[2]}-{img_info[1] + 1}"
+    url = f"https://{config.website}/s/{img_info[0]}/{img_info[2]}-{img_info[1] + 1}"
     try:
-        async with session.get(url, proxy=config['proxy']['url'] if config['proxy']['enable'] else None) as resp:
+        async with session.get(url, proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
             logger.info(f"Getting information for {gal_name}, page {img_info[1] + 1}")
             content = await resp.text()
         img_page = etree.HTML(content)
         async with session.get(img_page.xpath("//img[@id='img']/@src")[0],
-                               proxy=config['proxy']['url'] if config['proxy']['enable'] else None) as resp:
+                               proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
             logger.info(f"Downloading {gal_name}, page {img_info[1] + 1}")
             img = await resp.read()
             img_hash = hashlib.md5(img).hexdigest()
@@ -103,14 +105,14 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, config:
     except Error509:
         logger.error("Bumped into 509. Will sleep for 20 mins.")
         time.sleep(1200)
-        await _async_download_img(path, session, config, img_info, gal_name)
+        await _async_download_img(path, session, img_info, gal_name)
     except Exception as e:
         logger.exception(e)
         if retry_times > 0:
             logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_times}")
             retry_times -= 1
             time.sleep(5)
-            await _async_download_img(path, session, config, img_info, gal_name)
+            await _async_download_img(path, session, img_info, gal_name)
         else:
             logger.error(f"Error to download {url}. Skip.")
             retry_times = 5
@@ -118,7 +120,7 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, config:
 
 
 @logger.catch
-async def download(config: dict):
+async def download():
     global flag
     with sqlite3.connect(db_dir) as conn:
         result = conn.execute('SELECT * FROM doujinshi WHERE finished = 0').fetchall()
@@ -132,7 +134,7 @@ async def download(config: dict):
         # Long path extensions supported in Windows 10 1607 and later will not be supported because Windows Explorer
         # does not support long paths and because of compatibility issues.
         path = f"{i[0]}-{path}"
-        root = os.path.join(config['save_path'], f'{i[4]}-{category_name}')
+        root = os.path.join(config.save_path, f'{i[4]}-{category_name}')
         os_brand = platform.system()
         if os_brand == 'Windows':
             path_length_limit = 259
@@ -162,13 +164,13 @@ async def download(config: dict):
         path = os.path.join(root, path)
         if not os.path.exists(path):
             os.mkdir(path)
-        img_info = await _get_info(i, config)
+        img_info = await _get_info(i)
         if img_info is not None:
             if len(img_info) != 0:
-                async with aiohttp.ClientSession(cookies=config['cookies'],
-                                                 connector=aiohttp.TCPConnector(limit=config['connect_limit']),
-                                                 headers={'User-Agent': config['User-Agent']}) as session:
-                    tasks = [asyncio.create_task(_async_download_img(path, session, config, j, i[1])) for j in img_info]
+                async with aiohttp.ClientSession(cookies=config.cookies,
+                                                 connector=aiohttp.TCPConnector(limit=config.connect_limit),
+                                                 headers={'User-Agent': config.user_agent}) as session:
+                    tasks = [asyncio.create_task(_async_download_img(path, session, j, i[1])) for j in img_info]
                     await asyncio.wait(tasks)
             if flag:
                 with sqlite3.connect(db_dir) as conn:

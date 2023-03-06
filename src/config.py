@@ -3,8 +3,8 @@ import os
 import yaml
 from loguru import logger
 
-working_dir = os.path.split(os.path.split(__file__)[0])[0]
-db_dir = os.path.join(working_dir, 'data.db')
+_working_dir = os.path.split(os.path.split(__file__)[0])[0]
+db_dir = os.path.join(_working_dir, 'data.db')
 
 
 class Config:
@@ -18,11 +18,11 @@ class Config:
         self.proxy = {
             'enable': False
         }
-        self.save_path = os.path.join(working_dir, 'doujinshi')
+        self.save_path = os.path.join(_working_dir, 'doujinshi')
         self.website = 'e-hentai.org'
         self.connect_limit = 3
         try:
-            with open(os.path.join(working_dir, 'config.yaml'), encoding='UTF-8') as f:
+            with open(os.path.join(_working_dir, 'config.yaml'), encoding='UTF-8') as f:
                 config: dict = yaml.safe_load(f)
                 if 'cookies' not in config:
                     logger.error('Cookies not found.')
