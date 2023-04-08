@@ -20,6 +20,10 @@ This script is for personal use, and is hosted on GitHub for your convenience on
 
 You should be aware that this script is not responsible for any potential damages, including but not limited to IP blocking, account banning, file loss, etc. Please read the [license](LICENSE) used for this project for details.
 
+## Download tips for the e-hentai.org site
+
+Due to the recent deployment of the CloudFlare shield on e-hentai.org, this script does not use a headless browser to execute JS scripts and cannot be bypassed at this time. Since the CloudFlare shield has a higher probability of triggering, downloading from e-hentai.org is likely to trigger a 403 denial of access. The temporary solution is to use the exhentai.org site for downloading, so please use e-hentai.org for downloading at your own discretion.
+
 ## How to use
 
 - Install a copy of [Python](https://www.python.org). The minimum version required is 3.7, but this script is written in 3.11, so we recommend using 3.11.
