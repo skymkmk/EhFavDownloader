@@ -201,7 +201,7 @@ async def download():
                         for j in result:
                             f.write(f"{j[0]} {j[1]}\n")
                     with sqlite3.connect(db_dir) as conn:
-                        conn.execute("UPDATE doujinshi SET finished = 1 WHERE gid = ?", (i[0],))
+                        conn.execute("UPDATE doujinshi SET status = 1 WHERE gid = ?", (i[0],))
                         conn.commit()
                     logger.success(f"Gallery {i[0]} {i[1]} download finished.")
             flag = True
