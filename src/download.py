@@ -118,7 +118,6 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, img_inf
             if retry_times > 0:
                 logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_times}")
                 retry_times -= 1
-                time.sleep(5)
                 await _async_download_img(path, session, img_info, gal_name, nl)
             else:
                 logger.error(f"Error to download {url}. Skip.")
@@ -175,7 +174,8 @@ async def download():
         if img_info is not None:
             if len(img_info) != 0:
                 async with aiohttp.ClientSession(cookies=config.cookies,
-                                                 connector=aiohttp.TCPConnector(limit=config.connect_limit),
+                                                 connector=aiohttp.TCPConnector(limit=config.connect_limit,
+                                                                                verify_ssl=False),
                                                  headers={'User-Agent': config.user_agent}) as session:
                     tasks = [asyncio.create_task(_async_download_img(path, session, j, i[1])) for j in img_info]
                     await asyncio.wait(tasks)
