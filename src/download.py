@@ -105,7 +105,7 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, img_inf
                 conn.execute("UPDATE img SET finished = 1, md5 = ? WHERE id = ? and page_num = ? and gid = ?",
                              (img_hash, img_info[0], img_info[1], img_info[2],))
                 conn.commit()
-                break
+            break
         except IndexError:
             logger.error(content)
             flag = False
