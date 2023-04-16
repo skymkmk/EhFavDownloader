@@ -100,10 +100,10 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, img_inf
             save_path = f"{path}/{img_info[1] + 1:0>8d}.{filetype.filetype.guess_extension(img)}"
             with open(save_path, 'wb') as f:
                 f.write(img)
-            retry_times = 5
+            retry_times = 3
             with sqlite3.connect(db_dir) as conn:
-                conn.execute("UPDATE img SET finished = 1 WHERE id = ? and page_num = ? and gid = ? and md5 = ?",
-                             (img_info[0], img_info[1], img_info[2], img_hash,))
+                conn.execute("UPDATE img SET finished = 1, md5 = ? WHERE id = ? and page_num = ? and gid = ?",
+                             (img_hash, img_info[0], img_info[1], img_info[2],))
                 conn.commit()
                 break
         except IndexError:
