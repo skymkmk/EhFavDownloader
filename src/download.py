@@ -20,7 +20,7 @@ from .config import Config
 config = Config()
 db_dir = src.config.db_dir
 flag = True
-retry_times = 5
+retry_times = 3
 
 
 async def _get_info(gal_info: tuple):
@@ -75,48 +75,55 @@ async def _get_info(gal_info: tuple):
         return img_info
 
 
-async def _async_download_img(path: str, session: aiohttp.ClientSession, img_info: tuple, gal_name: str):
+async def _async_download_img(path: str, session: aiohttp.ClientSession, img_info: tuple, gal_name: str,
+                              nl: str = None):
     global retry_times
     global flag
     url = f"https://{config.website}/s/{img_info[0]}/{img_info[2]}-{img_info[1] + 1}"
-    try:
-        async with session.get(url, proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
-            logger.info(f"Getting information for {gal_name}, page {img_info[1] + 1}")
-            content = await resp.text()
-        img_page = etree.HTML(content)
-        async with session.get(img_page.xpath("//img[@id='img']/@src")[0],
-                               proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
-            logger.info(f"Downloading {gal_name}, page {img_info[1] + 1}")
-            img = await resp.read()
-            img_hash = hashlib.md5(img).hexdigest()
-            if img_hash == '88fe16ae482faddb4cc23df15722348c':
-                raise Error509
-        save_path = f"{path}/{img_info[1] + 1:0>8d}.{filetype.filetype.guess_extension(img)}"
-        with open(save_path, 'wb') as f:
-            f.write(img)
-        retry_times = 5
-        with sqlite3.connect(db_dir) as conn:
-            conn.execute("UPDATE img SET finished = 1 WHERE id = ? and page_num = ? and gid = ? and md5 = ?",
-                         (img_info[0], img_info[1], img_info[2], img_hash,))
-            conn.commit()
-    except IndexError:
-        logger.error(content)
-        flag = False
-    except Error509:
-        logger.error("Bumped into 509. Will sleep for 20 mins.")
-        time.sleep(1200)
-        await _async_download_img(path, session, img_info, gal_name)
-    except Exception as e:
-        logger.exception(e)
-        if retry_times > 0:
-            logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_times}")
-            retry_times -= 1
-            time.sleep(5)
-            await _async_download_img(path, session, img_info, gal_name)
-        else:
-            logger.error(f"Error to download {url}. Skip.")
+    if nl is not None:
+        url += '?nl=' + nl
+    while True:
+        try:
+            async with session.get(url, proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
+                logger.info(f"Getting information for {gal_name}, page {img_info[1] + 1}")
+                content = await resp.text()
+            img_page = etree.HTML(content)
+            hath_url = img_page.xpath("//img[@id='img']/@src")[0]
+            nl = img_page.xpath("//a[@id='loadfail']/@onclick")[0].replace("return nl('", '', 1).replace("')", '', 1)
+            async with session.get(hath_url,
+                                   proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
+                logger.info(f"Downloading {gal_name}, page {img_info[1] + 1}")
+                img = await resp.read()
+                img_hash = hashlib.md5(img).hexdigest()
+                if img_hash == '88fe16ae482faddb4cc23df15722348c':
+                    raise Error509
+            save_path = f"{path}/{img_info[1] + 1:0>8d}.{filetype.filetype.guess_extension(img)}"
+            with open(save_path, 'wb') as f:
+                f.write(img)
             retry_times = 5
+            with sqlite3.connect(db_dir) as conn:
+                conn.execute("UPDATE img SET finished = 1 WHERE id = ? and page_num = ? and gid = ? and md5 = ?",
+                             (img_info[0], img_info[1], img_info[2], img_hash,))
+                conn.commit()
+                break
+        except IndexError:
+            logger.error(content)
             flag = False
+            break
+        except Error509:
+            logger.error("Bumped into 509. Will sleep for 20 mins.")
+            time.sleep(1200)
+            await _async_download_img(path, session, img_info, gal_name)
+        except:
+            if retry_times > 0:
+                logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_times}")
+                retry_times -= 1
+                time.sleep(5)
+                await _async_download_img(path, session, img_info, gal_name, nl)
+            else:
+                logger.error(f"Error to download {url}. Skip.")
+                retry_times = 3
+                flag = False
 
 
 @logger.catch
