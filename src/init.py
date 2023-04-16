@@ -2,6 +2,7 @@ import asyncio
 import os
 import sqlite3
 
+import alembic.config, alembic.command
 from loguru import logger
 from lxml.etree import HTML
 
@@ -10,6 +11,7 @@ from .config import Config
 from .config import db_dir
 
 config = Config()
+working_dir = os.path.split(os.path.split(__file__)[0])[0]
 
 
 @logger.catch
@@ -20,12 +22,16 @@ def init():
                      "name text NOT NULL)")
         conn.execute("CREATE TABLE IF NOT EXISTS doujinshi (gid integer NOT NULL PRIMARY KEY, title text NOT NULL,"
                      "page_num integer NOT NULL DEFAULT 0, token text NOT NULL, category_id integer NOT NULL,"
-                     "finished integer NOT NULL DEFAULT 0,"
+                     "status integer NOT NULL DEFAULT 0, artist text, parent_gid integer, parent_key text,"
+                     "first_gid integer, first_key text, current_gid integer, current_key text, favorited_time date,"
                      "CONSTRAINT fk_catgory FOREIGN KEY (category_id) REFERENCES category(id))")
         conn.execute("CREATE TABLE IF NOT EXISTS img (id text NOT NULL, page_num integer NOT NULL,"
-                     "gid integer NOT NULL, finished integer NOT NULL DEFAULT 0, PRIMARY KEY (id, page_num, gid),"
+                     "gid integer NOT NULL, finished integer NOT NULL DEFAULT 0, md5 text,"
+                     "PRIMARY KEY (id, page_num, gid),"
                      "CONSTRAINT fk_gid FOREIGN KEY (gid) REFERENCES doujinshi(gid))")
         conn.commit()
+    alembic_config = alembic.config.Config(os.path.join(working_dir, 'alembic.ini'))
+    alembic.command.upgrade(alembic_config, 'head')
     # New save path if not exists
     if not os.path.exists(config.save_path):
         os.makedirs(config.save_path)
