@@ -3,11 +3,12 @@ import os
 import yaml
 from loguru import logger
 
-_working_dir = os.path.split(os.path.split(__file__)[0])[0]
-db_dir = os.path.join(_working_dir, 'data.db')
+working_dir = os.path.split(os.path.split(__file__)[0])[0]
+db_dir = os.path.join(working_dir, 'data.db')
 
 
 class Config:
+    working_dir = os.path.split(os.path.split(__file__)[0])[0]
     def __init__(self):
         self.cookies = {
             'ipb_member_id': None,
@@ -18,11 +19,12 @@ class Config:
         self.proxy = {
             'enable': False
         }
-        self.save_path = os.path.join(_working_dir, 'doujinshi')
+        self.save_path = os.path.join(working_dir, 'doujinshi')
         self.website = 'e-hentai.org'
         self.connect_limit = 3
+        self.enable_artist_translation = False
         try:
-            with open(os.path.join(_working_dir, 'config.yaml'), encoding='UTF-8') as f:
+            with open(os.path.join(working_dir, 'config.yaml'), encoding='UTF-8') as f:
                 config: dict = yaml.safe_load(f)
                 if 'cookies' not in config:
                     logger.error('Cookies not found.')
@@ -58,6 +60,8 @@ class Config:
                     self.save_path = config['save_path']
                 if 'connect_limit' in config:
                     self.connect_limit = config['connect_limit']
+                if 'enable_artist_translation' in config:
+                    self.enable_artist_translation = config['enable_artist_translation']
         except FileNotFoundError:
             logger.error("Can't find config file.")
             exit(1)

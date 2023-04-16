@@ -1,58 +1,93 @@
 import asyncio
+import json
+import os.path
 import re
 import sqlite3
+import time
+
+import src.sql as sql
 
 from loguru import logger
 from lxml.etree import HTML
 
+import src.pageParser as pageParser
 import src.config
 from src.utils import get
 
 config = src.config.Config()
-db_dir = src.config.db_dir
+if config.enable_artist_translation:
+    with open(os.path.join(config.working_dir, 'translation.json'), 'r', encoding='UTF-8') as f:
+        trans = json.load(f)['data']
+        for i in trans:
+            if i['namespace'] == 'artist':
+                trans = i['data']
+                break
 
-@logger.catch
-def update_data():
-    for i in range(0, 10):
+
+def update_data() -> None:
+    api_request_time = 0
+    for favicat in range(0, 10):
         flag = True
-        url = f"https://{config.website}/favorites.php?favcat={i}&inline_set=dm_e"
-        page_num = 0
+        page_num = 1
+        url = f"https://{config.website}/favorites.php?favcat={favicat}&inline_set=dm_m"
         while flag:
-            page_num += 1
-            logger.info(f'Updating category {i + 1}, page {page_num}')
+            logger.info(f'Updating category {favicat + 1}-{sql.select_category_name(favicat + 1)}, page {page_num}')
             content = asyncio.run(get(url))
-            page = HTML(content)
-            titles = page.xpath("//form[@id='favform']/table/tr//div[@class='glink']/text()")
-            urls = page.xpath("//form[@id='favform']/table/tr//div[contains(@class, 'glname')]/../@href")
-            if 0 in [len(titles), len(urls)]:
-                notice = page.xpath("//div[@class='ido']/p/text()")
-                if len(notice) != 1:
-                    logger.error(content.decode())
-                    exit(1)
-                else:
-                    logger.info(f"Not found any favorites in category {i + 1}. Message: {notice[0]}")
+            with open('a.html', 'w', encoding='UTF-8') as f:
+                f.write(content.decode())
+            results = pageParser.fav_page(content)
+            if type(results) is str:
+                logger.info(results)
+                return
+            results = [{'gid': i[0], 'token': i[1], 'fav_time': i[2]} for i in results]
             # Get gallery information
-            for title, url in zip(titles, urls):
-                try:
-                    gid = int(re.findall(f"^https://{config.website}/g/([0-9]*)/.*", url)[0])
-                    gal_token = re.findall(rf"^https://{config.website}/g/[0-9]*/(\w*)/?", url)[0]
-                    with sqlite3.connect(db_dir) as conn:
-                        result = conn.execute("SELECT * FROM doujinshi WHERE gid = ?", (gid,)).fetchall()
-                        if len(result) == 0:
-                            conn.execute("INSERT INTO doujinshi (gid, title, token, category_id)"
-                                         "VALUES (?, ?, ?, ?)", (gid, title, gal_token, i + 1,))
-                            conn.commit()
-                        else:
-                            conn.execute("UPDATE doujinshi SET title = ?, token = ? WHERE gid = ?",
-                                         (title, gal_token, gid,))
-                            conn.commit()
-                except ValueError:
-                    logger.warning("Gid is not a integer anymore. Contact skymkmk(admin@skymkmk.com) for more"
-                                   "information.")
-                    logger.warning(f"Error url: {url}")
-            next_page = page.xpath("//a[@id='dnext']")
-            if len(next_page) == 0:
-                flag = False
+            for i in range(0, (len(results) - 1) // 25 + 1):
+                if len(results) - i * 25 >= 25:
+                    gidlist = [[i['gid'], i['token']] for i in results[i * 25: i * 25 + 25]]
+                else:
+                    gidlist = [[i['gid'], i['token']] for i in results[i * 25: -1]]
+                data = {
+                    'method': 'gdata',
+                    'gidlist': gidlist,
+                    'namespace': 1
+                }
+                while True:
+                    if api_request_time < 5:
+                        try:
+                            result = json.loads(asyncio.run(get('https://api.e-hentai.org/api.php',
+                                                                data=json.dumps(data))))
+                            result = result['gmetadata']
+                        except KeyError:
+                            logger.error('Failed to fetch ehapi.')
+                            logger.exception(result)
+                        api_request_time += 1
+                        break
+                    else:
+                        api_request_time = 0
+                        logger.info('Sleep for 5 secs to fetch ehapi.')
+                        time.sleep(5)
+                for i in result:
+                    artist = ''
+                    for j in i['tags']:
+                        if 'artist:' in j:
+                            if config.enable_artist_translation:
+                                if j.replace('artist:', '', 1) in trans:
+                                    artist += trans[j.replace('artist:', '', 1)]['name']
+                                else:
+                                    artist += j.replace('artist:', '', 1)
+                            else:
+                                artist += j.replace('artist:', '', 1)
+                            artist += ' '
+                    for j in results:
+                        if i['gid'] in j.values():
+                            favorite_time = j['fav_time']
+                            break
+                    sql.update_doujinshi(i['gid'], i['token'], favicat + 1, i['title_jpn'] if 'title_jpn' in i
+                    else i['title'], artist=artist if artist != '' else None, favorited_time=favorite_time, kwargs=i)
+            next_page = pageParser.fav_next(content)
+            if next_page is not None:
+                url = next_page + '&inline_set=dm_m'
+                page_num += 1
             else:
-                url = next_page[0].xpath('./@href')[0] + '&inline_set=dm_e'
+                flag = False
     logger.success("Update favourites info success.")

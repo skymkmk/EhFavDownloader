@@ -27,3 +27,6 @@ website: e-hentai.org
 # The number of parallel downloads.
 # It is strongly recommended not to set a number higher than 3.
 connect_limit: 3
+# 是否开启 EhTagTranslation 作者翻译
+# Whether to enable EhTagTranslation author translation. Not useful for non-Chinese user.
+enable_artist_translation: false
