@@ -9,7 +9,7 @@ config = Config()
 
 
 @logger.catch
-async def get(url: str, data: str | dict = None, retry_time: int = 5):
+async def get(url: str, data: str = None, retry_time: int = 5):
     async with aiohttp.ClientSession(cookies=config.cookies, headers={'User-Agent': config.user_agent}) \
             as session:
         try:

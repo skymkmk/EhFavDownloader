@@ -17,7 +17,7 @@ def fav_category(text: bytes) -> list:
     return result
 
 
-def fav_page(text: bytes) -> list | str:
+def fav_page(text: bytes):
     page = HTML(text)
     urls = page.xpath("//form[@id='favform']/table/tr//td[contains(@class, 'glname')]/a/@href")
     fav_time = page.xpath("//form[@id='favform']/table/tr//td[contains(@class, 'glfav')]/text()")
@@ -34,7 +34,7 @@ def fav_page(text: bytes) -> list | str:
         urls[idx] = [gid, gal_token, fav_time[idx]]
     return urls
 
-def fav_next(text: bytes) -> str | None:
+def fav_next(text: bytes):
     page = HTML(text)
     result = page.xpath("//a[@id='dnext']/@href")
     if len(result) == 0:
