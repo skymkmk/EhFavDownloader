@@ -123,7 +123,7 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, img_inf
 async def download():
     global flag
     with sqlite3.connect(db_dir) as conn:
-        result = conn.execute('SELECT * FROM doujinshi WHERE finished = 0').fetchall()
+        result = conn.execute('SELECT * FROM doujinshi WHERE status = 0').fetchall()
     for i in result:
         with sqlite3.connect(db_dir) as conn:
             category_name = conn.execute('SELECT name FROM category WHERE id = ?', (i[4],)).fetchall()[0][0]
