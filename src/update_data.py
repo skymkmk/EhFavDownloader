@@ -15,16 +15,16 @@ import src.config
 from src.utils import get
 
 config = src.config.Config()
-if config.enable_artist_translation:
-    with open(os.path.join(config.working_dir, 'translation.json'), 'r', encoding='UTF-8') as f:
-        trans = json.load(f)['data']
-        for i in trans:
-            if i['namespace'] == 'artist':
-                trans = i['data']
-                break
 
 
 def update_data() -> None:
+    if config.enable_artist_translation:
+        with open(os.path.join(config.working_dir, 'translation.json'), 'r', encoding='UTF-8') as f:
+            trans = json.load(f)['data']
+            for i in trans:
+                if i['namespace'] == 'artist':
+                    trans = i['data']
+                    break
     api_request_time = 0
     for favicat in range(0, 10):
         flag = True
