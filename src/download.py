@@ -38,7 +38,7 @@ async def _get_info(gal_info: tuple):
                     if len(page.xpath("//div[@class='d']/p[1]")) != 0:
                         logger.warning(page.xpath("//div[@class='d']/p[1]/text()")[0])
                         with sqlite3.connect(db_dir) as conn:
-                            conn.execute("UPDATE doujinshi SET finished = 2 WHERE gid = ?", (gal_info[0],))
+                            conn.execute("UPDATE doujinshi SET status = 2 WHERE gid = ?", (gal_info[0],))
                         return
                     else:
                         logger.error(content)
@@ -96,8 +96,8 @@ async def _async_download_img(path: str, session: aiohttp.ClientSession, img_inf
             f.write(img)
         retry_times = 5
         with sqlite3.connect(db_dir) as conn:
-            conn.execute("UPDATE img SET finished = 1 WHERE id = ? and page_num = ? and gid = ?",
-                         (img_info[0], img_info[1], img_info[2],))
+            conn.execute("UPDATE img SET finished = 1 WHERE id = ? and page_num = ? and gid = ? and md5 = ?",
+                         (img_info[0], img_info[1], img_info[2], img_hash,))
             conn.commit()
     except IndexError:
         logger.error(content)

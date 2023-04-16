@@ -82,7 +82,8 @@ def update_data() -> None:
                         if i['gid'] in j.values():
                             favorite_time = j['fav_time']
                             break
-                    sql.update_doujinshi(i['gid'], i['token'], favicat + 1, i['title_jpn'] if 'title_jpn' in i
+                    sql.update_doujinshi(i['gid'], i['token'], favicat + 1, i['title_jpn'] if 'title_jpn' in i and
+                                                                                              i['title_jpn'] != ''
                     else i['title'], artist=artist if artist != '' else None, favorited_time=favorite_time, kwargs=i)
             next_page = pageParser.fav_next(content)
             if next_page is not None:
