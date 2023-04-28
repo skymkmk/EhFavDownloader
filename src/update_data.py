@@ -45,7 +45,7 @@ def update_data() -> None:
                 if len(results) - i * 25 >= 25:
                     gidlist = [[i['gid'], i['token']] for i in results[i * 25: i * 25 + 25]]
                 else:
-                    gidlist = [[i['gid'], i['token']] for i in results[i * 25: -1]]
+                    gidlist = [[i['gid'], i['token']] for i in results[i * 25:]]
                 data = {
                     'method': 'gdata',
                     'gidlist': gidlist,
