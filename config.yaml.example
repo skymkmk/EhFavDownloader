@@ -8,7 +8,7 @@ cookies:
   igneous: 'YOUR_IGNEOUS_IF_YOU_ARE_USING_EXHENTAI_SITE'
 # 如果你不知道这项是干什么的，不要动它
 # If you don't know what this is for, do not change it.
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.37
 # 如果你在中国大陆，你有很高的可能性需要设置代理。这里是一份为 Clash 编写的示例
 # There is a high probability that you will need to set up a proxy if you are in mainland China. Here is an example for Clash.
 # proxy:
@@ -27,6 +27,9 @@ website: e-hentai.org
 # The number of parallel downloads.
 # It is strongly recommended not to set a number higher than 3.
 connect_limit: 3
+# 重试的次数。这影响所有可能需要重试的项目，包括画廊数据更新、元数据更新、图像下载、总尝试次数等。
+# Number of retries. This affects all items that may require retries, including gallery data updates, metadata updates, image downloads, total number of attempts, etc.
+retry_time: 3
 # 是否开启 EhTagTranslation 作者翻译
 # Whether to enable EhTagTranslation author translation. Not useful for non-Chinese user.
-enable_artist_translation: false
+enable_tag_translation: false

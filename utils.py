@@ -3,13 +3,11 @@ import time
 import aiohttp
 from loguru import logger
 
-from .config import Config
-
-config = Config()
+import config
 
 
-@logger.catch
-async def get(url: str, data: str = None, retry_time: int = 5):
+async def get(url: str, data: str = None, retry_time: int = config.retry_time,
+              ultimate_retry_time: int = config.retry_time) -> bytes:
     async with aiohttp.ClientSession(cookies=config.cookies, headers={'User-Agent': config.user_agent}) \
             as session:
         try:
@@ -23,10 +21,13 @@ async def get(url: str, data: str = None, retry_time: int = 5):
                     return await resp.read()
         except BaseException as e:
             if retry_time > 0:
-                logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_time}")
+                logger.warning(f"Error to connect {url}. Retrying. Remaining retry counts: {retry_time}")
                 time.sleep(5)
-                return await get(url, data=data, retry_time=retry_time - 1)
+                return await get(url, data=data, retry_time=retry_time - 1, ultimate_retry_time=ultimate_retry_time)
             else:
-                logger.error(f"Error to download {url}. Will sleep for 60 secs.")
-                time.sleep(60)
-                return await get(url, data=data)
+                if ultimate_retry_time > 0:
+                    logger.warning(f"Error to connect {url}. Will sleep for 60 secs.")
+                    time.sleep(60)
+                    return await get(url, data=data, ultimate_retry_time=ultimate_retry_time - 1)
+                else:
+                    logger.error(f"Error to connect {url}. Skip it.")
