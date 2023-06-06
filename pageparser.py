@@ -1,7 +1,5 @@
 import asyncio
 import re
-import time
-from datetime import datetime
 from typing import List, Tuple, Union
 
 import lxml.html as lhtml
@@ -54,7 +52,7 @@ def is_displayed_as_minimal(page: bytes) -> bool:
     return display == 'm'
 
 
-def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, datetime]], Union[str, None]], None]:
+def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, str]], Union[str, None]], None]:
     html = lhtml.fromstring(page)
     node_list = html.xpath(FAV_GALLERY_XPATH)
     if len(node_list == 0):
@@ -69,7 +67,7 @@ def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, da
         gtoken: str
         gid, gtoken = SEARCH_FAV_LIST_NODE.findall(i.xpath(FAV_GALLERY_URL_XPATH)[0])[0]
         gid = int(gid)
-        date: datetime = time.strptime(i.xpath(FAV_GALLERY_DATE_XPATH)[0], "%Y-%m-%d %H:%M")
+        date = i.xpath(FAV_GALLERY_DATE_XPATH)[0]
         lists.append((gid, gtoken, date))
     next_url = html.xpath(FAV_GALLERY_NEXT_URL_XPATH)
     if len(next_url) == 0:
