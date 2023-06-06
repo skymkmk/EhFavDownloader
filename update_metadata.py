@@ -98,7 +98,10 @@ def update_metadata() -> None:
                         tag: str
                         namespace, tag = SEARCH_TAG_NAMESPACE.findall(k)[0]
                         if namespace == "language":
-                            language = languages.get(name=tag.capitalize()).alpha2
+                            try:
+                                language = languages.get(name=tag.capitalize()).alpha2
+                            except KeyError:
+                                pass
                         elif namespace == "artist":
                             _append_metadata(artist, namespace, tag)
                         elif namespace == "group":
