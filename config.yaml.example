@@ -17,6 +17,9 @@ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 proxy:
   enable: false
 save_path: 你的文件存储路径_YOUR_BACKUP_PATH
+# 保存为 CBZ 格式
+# Save as cbz
+save_as_cbz: false
 # 有两个选项供你选择
 # There are two options for you.
 # e-hentai.org

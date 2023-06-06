@@ -22,6 +22,7 @@ connect_limit = 3
 enable_tag_translation = False
 retry_time = 3
 update_whole_favorite = False
+save_as_cbz = False
 try:
     with open(os.path.join(WORKING_DIR, 'config.yaml'), encoding='UTF-8') as f:
         config: dict = yaml.safe_load(f)
@@ -63,6 +64,8 @@ try:
             enable_tag_translation = config['enable_tag_translation']
         if 'retry_time' in config:
             retry_time = config['retry_time']
+        if 'save_as_cbz' in config:
+            save_as_cbz = config['save_as_cbz']
 except FileNotFoundError:
     logger.error("Can't find config file.")
     exit(exitcodes.CONFIG_FILE_NOT_FOUND)
