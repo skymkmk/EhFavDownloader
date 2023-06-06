@@ -2,26 +2,23 @@
 import asyncio
 import datetime
 import os.path
+import sys
 
-import yaml
 from loguru import logger
 
-from src import *
+import config
+import download
+import init
+import update_metadata
 
 if __name__ == '__main__':
-    working_dir = config.working_dir
-    if not os.path.exists(os.path.join(working_dir, 'logs')):
-        os.mkdir(os.path.join(working_dir, 'logs'))
-    logger.add(os.path.join(working_dir, "logs",
+    args = sys.argv[1:]
+    if not os.path.exists(os.path.join(config.WORKING_DIR, 'logs')):
+        os.mkdir(os.path.join(config.WORKING_DIR, 'logs'))
+    logger.add(os.path.join(config.WORKING_DIR, "logs",
                             f"{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')}.log"), level="WARNING")
-    try:
-        with open(os.path.join(working_dir, 'config.yaml'), 'r', encoding='UTF-8') as f:
-            config = yaml.safe_load(f)
-            logger.success('Config loaded.')
-    except FileNotFoundError as e:
-        logger.error("Can't find config file.")
-        exit(1)
-    init(config)
-    update_data(config)
-    asyncio.run(download(config))
+    init.init()
+    if not ('--download-only' in args or '-d' in args):
+        update_metadata.update_metadata()
+    asyncio.run(download.download())
     logger.success("Downloaded finished. Program will exit.")

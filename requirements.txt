@@ -3,3 +3,6 @@ lxml~=4.9.2
 aiohttp~=3.8.3
 PyYAML~=6.0
 filetype~=1.2.0
+alembic~=1.10.3
+SQLAlchemy~=2.0.9
+iso-639~=0.4.5
