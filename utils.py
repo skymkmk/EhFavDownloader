@@ -1,4 +1,4 @@
-__all__ = ['get', 'truncate_path']
+__all__ = ['get', 'truncate_path', 'Error509', 'FailToDownloadIMG']
 
 import os
 import platform
