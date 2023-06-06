@@ -62,20 +62,20 @@ async def get(url: str, data: str = None, retry_time: int = config.retry_time,
                     return
 
 
-def truncate_path(root: str, file_name: str) -> str:
+def truncate_path(root: str, file_name: str, spare_limit: int = 10) -> str:
     if os_brand in ['Windows', 'Darwin']:
-        if len(file_name) > FILE_NAME_LENGTH_LIMIT:
-            file_name = file_name[:FILE_NAME_LENGTH_LIMIT]
-    elif len(file_name.encode(encoding='utf-8')) > FILE_NAME_LENGTH_LIMIT:
-        file_name = file_name.encode(encoding='utf-8')[: FILE_NAME_LENGTH_LIMIT].decode(encoding='utf-8',
-                                                                                        errors='ignore')
+        if len(file_name) > FILE_NAME_LENGTH_LIMIT - spare_limit:
+            file_name = file_name[:FILE_NAME_LENGTH_LIMIT - spare_limit]
+    elif len(file_name.encode(encoding='utf-8')) > FILE_NAME_LENGTH_LIMIT - spare_limit:
+        file_name = file_name.encode(encoding='utf-8')[: FILE_NAME_LENGTH_LIMIT - spare_limit].decode(encoding='utf-8',
+                                                                                                      errors='ignore')
     if os_brand == 'Windows':
         # Because the path does not contain / at the end, here subtract one more. The following is the same as here.
-        length_limit = PATH_LENGTH_LIMIT - len(root) - 1
+        length_limit = PATH_LENGTH_LIMIT - len(root) - 1 - spare_limit
         if len(file_name) > length_limit:
             file_name = file_name[: length_limit]
     else:
-        length_limit = PATH_LENGTH_LIMIT - len(root.encode(encoding='utf-8')) - 1
+        length_limit = PATH_LENGTH_LIMIT - len(root.encode(encoding='utf-8')) - 1 - spare_limit
         if len(file_name.encode(encoding='utf-8')) > length_limit:
             file_name = file_name.encode(encoding='utf-8')[: length_limit].decode(encoding='utf-8', errors='ignore')
     return os.path.join(root, file_name)
