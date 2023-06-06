@@ -68,18 +68,23 @@ def update_doujinshi(gid: int, **kwargs) -> None:
         conn.commit()
 
 
+def update_gallery_success(gid: int) -> None:
+    conn.execute("UPDATE doujinshi SET status = 1 WHERE gid = ?", (gid,))
+    conn.commit()
+
+
 def update_doujinshi_as_dmca(gid: int) -> None:
     conn.execute("UPDATE doujinshi SET status = 2 WHERE gid = ?", (gid,))
     conn.commit()
 
 
 def select_img_info(gid: int) -> List[Tuple[int, str]]:
-    result = conn.execute("SELECT page_num, id FROM img WHERE gid = ? and finished = 0", (gid,))
+    result = conn.execute("SELECT page_num, id FROM img WHERE gid = ? and finished = 0", (gid,)).fetchall()
     return result
 
 
 def select_img_counts(gid: int) -> int:
-    return conn.execute("SELECT count(id) FROM img WHERE gid = ?", (gid,))[0][0]
+    return conn.execute("SELECT count(id) FROM img WHERE gid = ?", (gid,)).fetchall()[0][0]
 
 
 def update_img_info(ptoken: str, page_num: int, gid: int) -> None:
