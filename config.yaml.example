@@ -5,6 +5,7 @@
 cookies:
   ipb_member_id: 'YOUR_IPB_MEMBER_ID'
   ipb_pass_hash: 'YOUR_IPB_PASS_HASH'
+  sk: 'YOUR_SK'
   igneous: 'YOUR_IGNEOUS_IF_YOU_ARE_USING_EXHENTAI_SITE'
 # 如果你不知道这项是干什么的，不要动它
 # If you don't know what this is for, do not change it.
