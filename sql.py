@@ -1,9 +1,24 @@
-import sqlite3
-import config
 import atexit
+import sqlite3
+
+import config
 
 conn = sqlite3.connect(config.DB_DIR)
 atexit.register(conn.close)
+
+
+def create_database() -> None:
+    conn.execute("CREATE TABLE IF NOT EXISTS category (id integer NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                 "name text NOT NULL)")
+    conn.execute("CREATE TABLE IF NOT EXISTS doujinshi (gid integer NOT NULL PRIMARY KEY, token text NOT NULL,"
+                 "category_id integer NOT NULL, page_num integer NOT NULL DEFAULT 0, status integer NOT NULL DEFAULT 0,"
+                 "title text NOT NULL, artist text, group text, tag text, language text, favorited_time text,"
+                 "CONSTRAINT fk_catgory FOREIGN KEY (category_id) REFERENCES category(id))")
+    conn.execute("CREATE TABLE IF NOT EXISTS img (id text NOT NULL, page_num integer NOT NULL,"
+                 "gid integer NOT NULL, finished integer NOT NULL DEFAULT 0, md5 text,"
+                 "PRIMARY KEY (id, page_num, gid),"
+                 "CONSTRAINT fk_gid FOREIGN KEY (gid) REFERENCES doujinshi(gid))")
+    conn.commit()
 
 
 def update_category(cid: int, name: str) -> None:
