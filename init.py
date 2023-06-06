@@ -1,7 +1,8 @@
 import asyncio
 import os
 
-import alembic.config, alembic.command
+import alembic.command
+import alembic.config
 from loguru import logger
 
 import config
@@ -22,7 +23,7 @@ def init():
             logger.info('Downloading EhTagTranslation...')
             result = asyncio.run(get('https://raw.githubusercontent.com/EhTagTranslation/DatabaseReleases/master/'
                                      'db.text.json'))
-            with open(os.path.join(config.WORKING_DIR, 'translation.json',), 'w', encoding='UTF-8') as f:
+            with open(os.path.join(config.WORKING_DIR, 'translation.json', ), 'w', encoding='UTF-8') as f:
                 f.write(result.decode(encoding='UTF-8'))
     # New save path if not exists
     if not os.path.exists(config.save_path):

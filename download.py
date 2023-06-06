@@ -1,26 +1,22 @@
 import asyncio
 import datetime
 import hashlib
-import math
 import os
-import platform
 import re
-import sqlite3
 import time
-import zipfile
-
-import aiohttp
-import filetype.filetype
-import lxml.etree as etree
-from loguru import logger
-from typing import Union, List, Tuple
-import config
 import xml.etree.ElementTree as ET
+import zipfile
+from typing import Union, List, Tuple
 
+import filetype.filetype
+from loguru import logger
+
+import config
 import pageparser
 import sql
 import utils
 from utils import *
+
 HASH509 = '88fe16ae482faddb4cc23df15722348c'
 
 

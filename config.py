@@ -21,7 +21,6 @@ website = 'e-hentai.org'
 connect_limit = 3
 enable_tag_translation = False
 retry_time = 3
-update_whole_favorite = False
 save_as_cbz = False
 try:
     with open(os.path.join(WORKING_DIR, 'config.yaml'), encoding='UTF-8') as f:
