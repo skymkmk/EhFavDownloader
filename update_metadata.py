@@ -117,7 +117,7 @@ def update_metadata() -> None:
                             favorite_time = k[2]
                             break
                     sql.update_doujinshi(int(j['gid']), token=j['token'], category_id=favicat + 1, title=title,
-                                         artist=artist, group=group, tag=tags, language=language,
+                                         artist=artist, publisher=group, tag=tags, language=language,
                                          favorite_time=favorite_time)
             if next_url is not None:
                 url = next_url

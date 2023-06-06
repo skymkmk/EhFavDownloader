@@ -12,7 +12,7 @@ def create_database() -> None:
                  "name text NOT NULL)")
     conn.execute("CREATE TABLE IF NOT EXISTS doujinshi (gid integer NOT NULL PRIMARY KEY, token text NOT NULL,"
                  "category_id integer NOT NULL, page_num integer NOT NULL DEFAULT 0, status integer NOT NULL DEFAULT 0,"
-                 "title text NOT NULL, artist text, group text, tag text, language text, favorited_time text,"
+                 "title text NOT NULL, artist text, publisher text, tag text, language text, favorited_time text,"
                  "CONSTRAINT fk_catgory FOREIGN KEY (category_id) REFERENCES category(id))")
     conn.execute("CREATE TABLE IF NOT EXISTS img (id text NOT NULL, page_num integer NOT NULL,"
                  "gid integer NOT NULL, finished integer NOT NULL DEFAULT 0, md5 text,"
@@ -37,8 +37,15 @@ def select_category_name(cid: int) -> str:
     return result
 
 
+def select_latest_favorite_time() -> str:
+    result = conn.execute("SELECT favorited_time FROM doujinshi "
+                          "ORDER BY DATETIME(favorited_time) DESC LIMIT 1").fetchall()[0][0]
+    return result
+
+
 def update_doujinshi(gid: int, **kwargs) -> None:
-    arguments = ['token', 'category_id', 'page_num', 'title', 'artist', 'group', 'tag', 'language', 'favorited_time']
+    arguments = ['token', 'category_id', 'page_num', 'title', 'artist', 'publisher', 'tag', 'language',
+                 'favorited_time']
     result = conn.execute("SELECT * FROM doujinshi WHERE gid = ?", (gid,)).fetchall()
     columns = ['gid']
     columns.extend([i for i in kwargs.keys() if i in arguments])
