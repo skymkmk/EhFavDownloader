@@ -79,7 +79,7 @@ def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, st
         return lists, next_url[0]
 
 
-def parse_gallery_img_list(url: str, img_list: Union[List[str], None] = None) -> Union[List[str], None]:
+def parse_gallery_img_list(url: str, img_list: Union[List[Tuple[str]], None] = None) -> Union[List[Tuple[str]], None]:
     if img_list is None:
         img_list = []
     page = asyncio.run(get(url))
@@ -93,7 +93,7 @@ def parse_gallery_img_list(url: str, img_list: Union[List[str], None] = None) ->
         logger.error(notice)
         return
     for i in the_list:
-        img_list.append(SEARCH_PTOKEN.findall(i)[0])
+        img_list.append((SEARCH_PTOKEN.findall(i)[0],))
     next_page = html.xpath(GALLERY_NEXT_PAGE_XPATH)
     if len(next_page) != 0:
         parse_gallery_img_list(next_page[0], img_list=img_list)

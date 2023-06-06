@@ -40,8 +40,8 @@ def select_category_name(cid: int) -> Union[str, None]:
     return result[0][0]
 
 
-def select_doujinshi_for_download() -> List[Tuple[int, str, int, str]]:
-    result = conn.execute("SELECT gid, token, page_num, title FROM doujinshi WHERE status = 0").fetchall()
+def select_doujinshi_for_download() -> List[Tuple[int, str, int, str, int]]:
+    result = conn.execute("SELECT gid, token, page_num, title, category_id FROM doujinshi WHERE status = 0").fetchall()
     return result
 
 
