@@ -1,14 +1,15 @@
 import asyncio
+import re
+import time
+from datetime import datetime
 from typing import List, Tuple, Union
+
 import lxml.html as lhtml
 from loguru import logger
-import exitcodes
-from datetime import datetime
-import time
-import re
-import config
-from utils import get
 
+import config
+import exitcodes
+from utils import get
 
 CATEGORY_XPATH = "//div[@class='nosel']/div[@class='fp']"
 CATEGORY_NODE_XPATH = "./div[3]/text()"
@@ -53,11 +54,11 @@ def is_displayed_as_minimal(page: bytes) -> bool:
     return display == 'm'
 
 
-def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, datetime], Union[str, None]]], None]:
+def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, datetime]], Union[str, None]], None]:
     html = lhtml.fromstring(page)
     node_list = html.xpath(FAV_GALLERY_XPATH)
     if len(node_list == 0):
-        notice = page.xpath(FAV_GALLERY_EMPTY_XPATH)
+        notice = html.xpath(FAV_GALLERY_EMPTY_XPATH)
         if len(notice) != 1:
             logger.error(page.decode(encoding="UTF-8", errors="ignore"))
             exit(exitcodes.CANT_PARSE_FAV_LIST)
@@ -65,9 +66,10 @@ def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, da
         return
     lists = []
     for i in node_list:
+        gtoken: str
         gid, gtoken = SEARCH_FAV_LIST_NODE.findall(i.xpath(FAV_GALLERY_URL_XPATH)[0])[0]
         gid = int(gid)
-        date = time.strptime(i.xpath(FAV_GALLERY_DATE_XPATH)[0], "")
+        date: datetime = time.strptime(i.xpath(FAV_GALLERY_DATE_XPATH)[0], "%Y-%m-%d %H:%M")
         lists.append((gid, gtoken, date))
     next_url = html.xpath(FAV_GALLERY_NEXT_URL_XPATH)
     if len(next_url) == 0:
@@ -76,7 +78,9 @@ def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, da
         return lists, next_url[0]
 
 
-def parse_gallery_img_list(url: str, img_list: List[str] = []) -> Union[List[str], None]:
+def parse_gallery_img_list(url: str, img_list: Union[List[str], None] = None) -> Union[List[str], None]:
+    if img_list is None:
+        img_list = []
     page = asyncio.run(get(url))
     html = lhtml.fromstring(page)
     the_list = html.xpath(IMG_LIST_XPATH)
@@ -95,7 +99,7 @@ def parse_gallery_img_list(url: str, img_list: List[str] = []) -> Union[List[str
     return img_list
 
 
-def parse_original_img_url(page: bytes) -> Tuple[str, str]
+def parse_original_img_url(page: bytes) -> Tuple[str, str]:
     html = lhtml.fromstring(page)
     original_url = html.xpath(IMG_ORIGINAL_URL_XPATH)
     nl = html.xpath(IMG_NL_XPATH)
