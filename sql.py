@@ -76,3 +76,14 @@ def update_doujinshi_as_dmca(gid: int) -> None:
 def select_img_info(gid: int) -> List[Tuple[int, str]]:
     result = conn.execute("SELECT page_num, id FROM img WHERE gid = ?", (gid,))
     return result
+
+
+def update_img_info(ptoken: str, page_num: int, gid: int) -> None:
+    result = conn.execute("SELECT * FROM img WHERE id = ? and page_num = ? and gid = ?",
+                          (ptoken, page_num, gid)).fetchall()
+    if len(result) == 0:
+        conn.execute("INSERT INTO img (id, page_num, gid) VALUES (?, ?, ?)", (ptoken, page_num, gid))
+        conn.commit()
+    else:
+        conn.execute("UPDATE img SET id = ? WHERE page_num = ? and gid = ?", (ptoken, page_num, gid))
+        conn.commit()
