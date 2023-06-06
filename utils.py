@@ -6,6 +6,10 @@ from loguru import logger
 import config
 
 
+class Error509(BaseException):
+    pass
+
+
 async def get(url: str, data: str = None, retry_time: int = config.retry_time,
               ultimate_retry_time: int = config.retry_time) -> bytes:
     async with aiohttp.ClientSession(cookies=config.cookies, headers={'User-Agent': config.user_agent}) \
