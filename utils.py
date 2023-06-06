@@ -1,12 +1,12 @@
 import os
 import time
 from sys import platform
+from typing import Union
 
 import aiohttp
 from loguru import logger
 
 import config
-
 
 # Limit the folder name length to 255 (bytes for Linux, characters for Windows / macOS) and the path length to
 # 259 characters (Windows) or 1023 bytes (macOS) or 4095 bytes (Linux) due to the limit of file system.
@@ -28,8 +28,12 @@ class Error509(BaseException):
     pass
 
 
+class FailToDownloadIMG(BaseException):
+    pass
+
+
 async def get(url: str, data: str = None, retry_time: int = config.retry_time,
-              ultimate_retry_time: int = config.retry_time) -> bytes:
+              ultimate_retry_time: int = config.retry_time) -> Union[bytes, None]:
     async with aiohttp.ClientSession(cookies=config.cookies, headers={'User-Agent': config.user_agent}) \
             as session:
         try:
@@ -53,6 +57,7 @@ async def get(url: str, data: str = None, retry_time: int = config.retry_time,
                     return await get(url, data=data, ultimate_retry_time=ultimate_retry_time - 1)
                 else:
                     logger.error(f"Error to connect {url}. Skip it.")
+                    return
 
 
 def truncate_path(root: str, file_name: str) -> str:
