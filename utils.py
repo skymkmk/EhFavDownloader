@@ -1,6 +1,8 @@
+__all__ = ['get', 'truncate_path']
+
 import os
+import platform
 import time
-from sys import platform
 from typing import Union
 
 import aiohttp
@@ -45,7 +47,7 @@ async def get(url: str, data: str = None, retry_time: int = config.retry_time,
                 async with session.post(url, data=data,
                                         proxy=config.proxy['url'] if config.proxy['enable'] else None) as resp:
                     return await resp.read()
-        except BaseException as e:
+        except BaseException:
             if retry_time > 0:
                 logger.warning(f"Error to connect {url}. Retrying. Remaining retry counts: {retry_time}")
                 time.sleep(5)
