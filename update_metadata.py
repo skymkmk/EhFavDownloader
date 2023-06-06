@@ -37,7 +37,6 @@ def _append_metadata(metadata_list: list, namespace: str, tag: str) -> None:
 def update_metadata() -> None:
     api_request_time = 0
     for favicat in range(0, 10):
-        flag = True
         page_num = 1
         url = f"https://{config.website}/favorites.php?favcat={favicat}"
         while True:
@@ -118,7 +117,7 @@ def update_metadata() -> None:
                             favorite_time = k[2]
                             break
                     sql.update_doujinshi(int(j['gid']), token=j['token'], category_id=favicat + 1, title=title,
-                                         artist=artist, group=group, tag=tag, language=language,
+                                         artist=artist, group=group, tag=tags, language=language,
                                          favorite_time=favorite_time)
             if next_url is not None:
                 url = next_url
