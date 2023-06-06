@@ -42,12 +42,8 @@ def update_metadata() -> None:
         while True:
             logger.info(f'Updating category {favicat + 1}-{sql.select_category_name(favicat + 1)}, page {page_num}')
             page = asyncio.run(get(url))
-            if not is_sorted_by_favorite_time(page):
-                asyncio.run(get(url + "?inline_set=fs_f"))
-                logger.info("Change favorite order to favorited time.")
-                continue
             if not is_displayed_as_minimal(page):
-                asyncio.run(get(url + '?inline_set=dm_m'))
+                asyncio.run(get(url + '&inline_set=dm_m'))
                 logger.info("Change favorite display as minimal.")
                 continue
             results = parse_fav_galleries_list(page)
@@ -112,13 +108,13 @@ def update_metadata() -> None:
                     artist = ','.join(set(artist))
                     group = ','.join(set(group))
                     tags = ','.join(set(tags))
-                    for k in gidlist:
+                    for k in fav_list:
                         if k[0] == int(j['gid']):
                             favorite_time = k[2]
                             break
-                    sql.update_doujinshi(int(j['gid']), token=j['token'], category_id=favicat + 1, title=title,
-                                         artist=artist, publisher=group, tag=tags, language=language,
-                                         favorite_time=favorite_time)
+                    sql.update_doujinshi(int(j['gid']), token=j['token'], category_id=favicat + 1,
+                                         page_num=j['filecount'], title=title, artist=artist, publisher=group, tag=tags,
+                                         language=language, favorited_time=favorite_time)
             if next_url is not None:
                 url = next_url
                 page_num += 1

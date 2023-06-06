@@ -45,14 +45,14 @@ def init():
         flag = True
         # Check existed dirs and create new folder if not exist
         for i in dirs:
-            if int(i.split('-')[0]) == idx:
+            if int(i.split('-')[0]) == idx + 1:
                 if i.split('-')[1] != name:
                     os.rename(os.path.join(config.save_path, i),
-                              os.path.join(config.save_path, f"{idx}-{name}"))
+                              os.path.join(config.save_path, f"{idx + 1}-{name}"))
                 flag = False
                 break
         if flag:
-            os.mkdir(os.path.join(config.save_path, f"{idx}-{name}"))
+            os.mkdir(os.path.join(config.save_path, f"{idx + 1}-{name}"))
         # Update database for category
-        sql.update_category(idx, name)
+        sql.update_category(idx + 1, name)
     logger.success("Init dirs success.")

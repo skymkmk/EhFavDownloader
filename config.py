@@ -9,7 +9,8 @@ WORKING_DIR = os.path.split(__file__)[0]
 DB_DIR = os.path.join(WORKING_DIR, 'data.db')
 cookies = {
     'ipb_member_id': None,
-    'ipb_pass_hash': None
+    'ipb_pass_hash': None,
+    'sk': None
 }
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 ' \
              'Safari/537.36 Edg/114.0.1823.37'
@@ -28,11 +29,12 @@ try:
         if 'cookies' not in config:
             logger.error('Cookies not found.')
             exit(exitcodes.NO_VALID_COOKIE_DETECTED)
-        elif not all(i in config['cookies'] for i in ['ipb_member_id', 'ipb_pass_hash']):
-            logger.error('ipb_member_id or ipb_pass_hash not found.')
+        elif not all(i in config['cookies'] for i in ['ipb_member_id', 'ipb_pass_hash', 'sk']):
+            logger.error('ipb_member_id or ipb_pass_hash or sk not found.')
             exit(exitcodes.NO_VALID_COOKIE_DETECTED)
         cookies['ipb_member_id'] = config['cookies']['ipb_member_id']
         cookies['ipb_pass_hash'] = config['cookies']['ipb_pass_hash']
+        cookies['sk'] = config['cookies']['sk']
         if 'website' in config:
             if config['website'] in ['e-hentai.org', 'exhentai.org']:
                 website = config['website']

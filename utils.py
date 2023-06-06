@@ -1,7 +1,9 @@
 __all__ = ['get', 'truncate_path', 'Error509', 'FailToDownloadIMG']
 
+import asyncio
 import os
 import platform
+import re
 import time
 from typing import Union
 
@@ -24,6 +26,7 @@ elif os_brand == 'Linux':
 else:
     PATH_LENGTH_LIMIT = 4095
 FILE_NAME_LENGTH_LIMIT = 255
+ILLEGAL_NAME = re.compile(r'''[\\/:*?"<>|]''')
 
 
 class Error509(BaseException):
@@ -55,7 +58,7 @@ async def get(url: str, data: str = None, retry_time: int = config.retry_time,
             else:
                 if ultimate_retry_time > 0:
                     logger.warning(f"Error to connect {url}. Will sleep for 60 secs.")
-                    time.sleep(60)
+                    await asyncio.sleep(60)
                     return await get(url, data=data, ultimate_retry_time=ultimate_retry_time - 1)
                 else:
                     logger.error(f"Error to connect {url}. Skip it.")
@@ -63,6 +66,7 @@ async def get(url: str, data: str = None, retry_time: int = config.retry_time,
 
 
 def truncate_path(root: str, file_name: str, spare_limit: int = 10) -> str:
+    file_name = ILLEGAL_NAME.sub('', file_name)
     if os_brand in ['Windows', 'Darwin']:
         if len(file_name) > FILE_NAME_LENGTH_LIMIT - spare_limit:
             file_name = file_name[:FILE_NAME_LENGTH_LIMIT - spare_limit]

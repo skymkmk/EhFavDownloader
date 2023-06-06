@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+import asyncio
 import datetime
 import os.path
 import sys
@@ -19,5 +20,5 @@ if __name__ == '__main__':
     init.init()
     if not ('--download-only' in args or '-d' in args):
         update_metadata.update_metadata()
-    download.download()
+    asyncio.run(download.download())
     logger.success("Downloaded finished. Program will exit.")

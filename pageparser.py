@@ -1,7 +1,6 @@
-__all__ = ['parse_fav_category_list', 'is_sorted_by_favorite_time', 'is_displayed_as_minimal',
+__all__ = ['parse_fav_category_list', 'is_displayed_as_minimal',
            'parse_fav_galleries_list', 'parse_gallery_img_list', 'parse_original_img_url']
 
-import asyncio
 import re
 from typing import List, Tuple, Union
 
@@ -43,22 +42,18 @@ def parse_fav_category_list(page: bytes) -> List[str]:
     return categories
 
 
-def is_sorted_by_favorite_time(page: bytes) -> bool:
-    html = lhtml.fromstring(page)
-    order = html.xpath(FAV_ORDER_XPATH)[0]
-    return order == 'f'
-
-
 def is_displayed_as_minimal(page: bytes) -> bool:
     html = lhtml.fromstring(page)
-    display = html.xpath(FAV_DISPLAY_XPATH)[0]
-    return display == 'm'
+    display = html.xpath(FAV_DISPLAY_XPATH)
+    if len(display) == 0:
+        return True
+    return display[0] == 'm'
 
 
 def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, str]], Union[str, None]], None]:
     html = lhtml.fromstring(page)
     node_list = html.xpath(FAV_GALLERY_XPATH)
-    if len(node_list == 0):
+    if len(node_list) == 0:
         notice = html.xpath(FAV_GALLERY_EMPTY_XPATH)
         if len(notice) != 1:
             logger.error(page.decode(encoding="UTF-8", errors="ignore"))
@@ -79,10 +74,11 @@ def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, st
         return lists, next_url[0]
 
 
-def parse_gallery_img_list(url: str, img_list: Union[List[Tuple[str]], None] = None) -> Union[List[Tuple[str]], None]:
+async def parse_gallery_img_list(url: str, img_list: Union[List[Tuple[str]], None] = None) -> Union[
+    List[Tuple[str]], None]:
     if img_list is None:
         img_list = []
-    page = asyncio.run(get(url))
+    page = await get(url)
     html = lhtml.fromstring(page)
     the_list = html.xpath(IMG_LIST_XPATH)
     if len(the_list) == 0:
@@ -96,7 +92,7 @@ def parse_gallery_img_list(url: str, img_list: Union[List[Tuple[str]], None] = N
         img_list.append((SEARCH_PTOKEN.findall(i)[0],))
     next_page = html.xpath(GALLERY_NEXT_PAGE_XPATH)
     if len(next_page) != 0:
-        parse_gallery_img_list(next_page[0], img_list=img_list)
+        await parse_gallery_img_list(next_page[0], img_list=img_list)
     return img_list
 
 
