@@ -1,6 +1,6 @@
 import atexit
 import sqlite3
-from typing import Union
+from typing import Union, List, Tuple
 
 import config
 
@@ -40,12 +40,9 @@ def select_category_name(cid: int) -> Union[str, None]:
     return result[0][0]
 
 
-def select_latest_favorite_time() -> Union[str, None]:
-    result = conn.execute("SELECT favorited_time FROM doujinshi "
-                          "ORDER BY DATETIME(favorited_time) DESC LIMIT 1").fetchall()
-    if len(result) == 0:
-        return
-    return result[0][0]
+def select_doujinshi_for_download() -> List[Tuple[int, str, int, str]]:
+    result = conn.execute("SELECT gid, token, page_num, title FROM doujinshi WHERE status = 0").fetchall()
+    return result
 
 
 def update_doujinshi(gid: int, **kwargs) -> None:
@@ -69,3 +66,13 @@ def update_doujinshi(gid: int, **kwargs) -> None:
         conn.execute(f"UPDATE doujinshi SET {' = ?, '.join(columns) + ' = ?'} WHERE gid = ?",
                      values)
         conn.commit()
+
+
+def update_doujinshi_as_dmca(gid: int) -> None:
+    conn.execute("UPDATE doujinshi SET status = 2 WHERE gid = ?", (gid,))
+    conn.commit()
+
+
+def select_img_info(gid: int) -> List[Tuple[int, str]]:
+    result = conn.execute("SELECT page_num, id FROM img WHERE gid = ?", (gid,))
+    return result
