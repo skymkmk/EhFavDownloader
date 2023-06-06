@@ -1,5 +1,6 @@
 import atexit
 import sqlite3
+from typing import Union
 
 import config
 
@@ -32,15 +33,19 @@ def update_category(cid: int, name: str) -> None:
         conn.commit()
 
 
-def select_category_name(cid: int) -> str:
-    result = conn.execute("SELECT name FROM category WHERE id = ?", (cid,)).fetchall()[0][0]
-    return result
+def select_category_name(cid: int) -> Union[str, None]:
+    result = conn.execute("SELECT name FROM category WHERE id = ?", (cid,)).fetchall()
+    if len(result) == 0:
+        return
+    return result[0][0]
 
 
-def select_latest_favorite_time() -> str:
+def select_latest_favorite_time() -> Union[str, None]:
     result = conn.execute("SELECT favorited_time FROM doujinshi "
-                          "ORDER BY DATETIME(favorited_time) DESC LIMIT 1").fetchall()[0][0]
-    return result
+                          "ORDER BY DATETIME(favorited_time) DESC LIMIT 1").fetchall()
+    if len(result) == 0:
+        return
+    return result[0][0]
 
 
 def update_doujinshi(gid: int, **kwargs) -> None:
