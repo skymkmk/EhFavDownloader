@@ -74,8 +74,12 @@ def update_doujinshi_as_dmca(gid: int) -> None:
 
 
 def select_img_info(gid: int) -> List[Tuple[int, str]]:
-    result = conn.execute("SELECT page_num, id FROM img WHERE gid = ?", (gid,))
+    result = conn.execute("SELECT page_num, id FROM img WHERE gid = ? and finished = 0", (gid,))
     return result
+
+
+def select_img_counts(gid: int) -> int:
+    return conn.execute("SELECT count(id) FROM img WHERE gid = ?", (gid,))[0][0]
 
 
 def update_img_info(ptoken: str, page_num: int, gid: int) -> None:
@@ -87,3 +91,8 @@ def update_img_info(ptoken: str, page_num: int, gid: int) -> None:
     else:
         conn.execute("UPDATE img SET id = ? WHERE page_num = ? and gid = ?", (ptoken, page_num, gid))
         conn.commit()
+
+
+def update_img_success(gid: int, ptoken: str, md5: str) -> None:
+    conn.execute("UPDATE img SET finished = 1, md5 = ? WHERE id = ? and gid = ?", (md5, ptoken, gid))
+    conn.commit()
