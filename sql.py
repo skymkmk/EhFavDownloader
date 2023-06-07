@@ -12,7 +12,7 @@ def create_database() -> None:
     conn.execute("CREATE TABLE IF NOT EXISTS alembic_version (version_num text NOT NULL PRIMARY KEY)")
     result = conn.execute("SELECT * FROM alembic_version").fetchall()
     if len(result) == 0:
-        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('5973317ba5f8')")
+        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('5e0ec12748d6')")
     conn.execute("CREATE TABLE IF NOT EXISTS category (id integer NOT NULL PRIMARY KEY AUTOINCREMENT,"
                  "name text NOT NULL)")
     conn.execute("CREATE TABLE IF NOT EXISTS doujinshi (gid integer NOT NULL PRIMARY KEY, token text NOT NULL,"
