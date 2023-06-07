@@ -61,12 +61,12 @@ async def _download_img(path: str, gid: int, page_num: int, ptoken: str, gal_nam
         logger.error("Bumped into 509. Will sleep for 20 mins.")
         time.sleep(1200)
         sem.release()
-        await _download_img(path, gid, page_num, ptoken, gal_name, nl)
+        return await _download_img(path, gid, page_num, ptoken, gal_name, nl)
     except FailToDownloadIMG:
         if retry_time > 0:
             logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_time}")
             sem.release()
-            await _download_img(path, gid, page_num, ptoken, gal_name, nl, retry_time - 1)
+            return await _download_img(path, gid, page_num, ptoken, gal_name, nl, retry_time - 1)
         else:
             logger.error(f"Error to download {url}. Skip.")
             sem.release()
