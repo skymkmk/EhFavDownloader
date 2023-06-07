@@ -37,7 +37,7 @@ async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tupl
 
 async def _download_img(path: str, gid: int, page_num: int, ptoken: str, gal_name: str, nl: str = None,
                         retry_time: int = config.retry_time) -> bool:
-    sem.locked()
+    await sem.acquire()
     url = f"https://{config.website}/s/{ptoken}/{gid}-{page_num + 1}"
     if nl is not None:
         url += '?nl=' + nl
