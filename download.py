@@ -17,7 +17,6 @@ import utils
 from utils import *
 
 HASH509 = '88fe16ae482faddb4cc23df15722348c'
-sem = asyncio.Semaphore(config.connect_limit)
 
 
 async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tuple[str]], None]:
@@ -35,8 +34,8 @@ async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tupl
     return img_info
 
 
-async def _download_img(path: str, gid: int, page_num: int, ptoken: str, gal_name: str, nl: str = None,
-                        retry_time: int = config.retry_time) -> bool:
+async def _download_img(sem: asyncio.Semaphore, path: str, gid: int, page_num: int, ptoken: str, gal_name: str,
+                        nl: str = None, retry_time: int = config.retry_time) -> bool:
     await sem.acquire()
     url = f"https://{config.website}/s/{ptoken}/{gid}-{page_num + 1}"
     if nl is not None:
@@ -61,12 +60,12 @@ async def _download_img(path: str, gid: int, page_num: int, ptoken: str, gal_nam
         logger.error("Bumped into 509. Will sleep for 20 mins.")
         time.sleep(1200)
         sem.release()
-        return await _download_img(path, gid, page_num, ptoken, gal_name, nl)
+        return await _download_img(sem, path, gid, page_num, ptoken, gal_name, nl)
     except FailToDownloadIMG:
         if retry_time > 0:
             logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_time}")
             sem.release()
-            return await _download_img(path, gid, page_num, ptoken, gal_name, nl, retry_time - 1)
+            return await _download_img(sem, path, gid, page_num, ptoken, gal_name, nl, retry_time - 1)
         else:
             logger.error(f"Error to download {url}. Skip.")
             sem.release()
@@ -87,7 +86,8 @@ async def download() -> None:
         img_info = await _get_info(i)
         if img_info is not None:
             if len(img_info) != 0:
-                tasks = [asyncio.create_task(_download_img(path, i[0], j[0], j[1], i[3])) for j in img_info]
+                sem = asyncio.Semaphore(config.connect_limit)
+                tasks = [asyncio.create_task(_download_img(sem, path, i[0], j[0], j[1], i[3])) for j in img_info]
                 success = await asyncio.gather(*tasks)
                 success = set(success)
                 if False in success:
