@@ -6,6 +6,7 @@ import sys
 
 from loguru import logger
 
+import cbz
 import config
 import download
 import init
@@ -17,8 +18,11 @@ if __name__ == '__main__':
         os.mkdir(os.path.join(config.WORKING_DIR, 'logs'))
     logger.add(os.path.join(config.WORKING_DIR, "logs",
                             f"{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')}.log"), level="WARNING")
-    init.init()
-    if not ('--download-only' in args or '-d' in args):
-        update_metadata.update_metadata()
-    asyncio.run(download.download())
-    logger.success("Downloaded finished. Program will exit.")
+    if not ('--update-cbz' in args or '-u' in args):
+        cbz.update_cbz()
+    else:
+        init.init()
+        if not ('--download-only' in args or '-d' in args):
+            update_metadata.update_metadata()
+        asyncio.run(download.download())
+        logger.success("Downloaded finished. Program will exit.")
