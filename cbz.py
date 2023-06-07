@@ -67,14 +67,14 @@ def update_cbz() -> None:
         logger.info(f"Updating {os.path.split(i)[-1]}")
         doujinshi_dir = _get_dir(i)
         for j in doujinshi_dir:
-            logger.info(f"Updating {os.path.split(j)[-1]}")
             for k in os.listdir(j):
-                if os.path.splitext(k) == '.cbz':
+                if os.path.splitext(k)[-1] == '.cbz':
                     try:
                         gid = VERIFY_ID.findall(k)[0]
                         result = sql.select_gallery_metadata(gid)
                         if len(result) == 0:
                             continue
+                        logger.info(f"Updating {os.path.split(j)[-1]}")
                         with tempfile.TemporaryDirectory() as tempdir:
                             with zipfile.ZipFile(os.path.join(j, k), 'r') as zf:
                                 zf.extractall(tempdir)
@@ -93,7 +93,7 @@ def update_cbz() -> None:
                                 break
                             except KeyboardInterrupt:
                                 pass
+                        logger.success(f"{os.path.split(j)[-1]} updated")
                     except IndexError:
                         pass
-            logger.success(f"{os.path.split(j)[-1]} updated")
     logger.success("CBZ updated.")
