@@ -95,19 +95,22 @@ def update_metadata() -> None:
                     else:
                         title = j['title']
                     for k in j['tags']:
-                        tag: str
-                        namespace, tag = SEARCH_TAG_NAMESPACE.findall(k)[0]
-                        if namespace == "language":
-                            try:
-                                language = languages.get(name=tag.capitalize()).alpha2
-                            except KeyError:
-                                pass
-                        elif namespace == "artist":
-                            _append_metadata(artist, namespace, tag)
-                        elif namespace == "group":
-                            _append_metadata(group, namespace, tag)
-                        else:
-                            _append_metadata(tags, namespace, tag)
+                        try:
+                            tag: str
+                            namespace, tag = SEARCH_TAG_NAMESPACE.findall(k)[0]
+                            if namespace == "language":
+                                try:
+                                    language = languages.get(name=tag.capitalize()).alpha2
+                                except KeyError:
+                                    pass
+                            elif namespace == "artist":
+                                _append_metadata(artist, namespace, tag)
+                            elif namespace == "group":
+                                _append_metadata(group, namespace, tag)
+                            else:
+                                _append_metadata(tags, namespace, tag)
+                        except IndexError:
+                            logger.warning(f"Detect temp tag {k}")
                     artist = ','.join(set(artist))
                     group = ','.join(set(group))
                     tags = ','.join(set(tags))
