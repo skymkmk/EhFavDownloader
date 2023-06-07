@@ -31,14 +31,15 @@ def _get_dir(root: str) -> List[str]:
 
 def config_info_xml(gid: int, path: str) -> None:
     gtoken, title, artist, publisher, tag, language, favorited_time = sql.select_gallery_metadata(gid)
-    favorited_time = datetime.datetime.strptime(favorited_time, "%Y-%m-%d %H:%M")
     root = ET.Element("ComicInfo")
-    year_node = ET.SubElement(root, "Year")
-    year_node.text = str(favorited_time.year)
-    month_node = ET.SubElement(root, 'Month')
-    month_node.text = str(favorited_time.month)
-    day_node = ET.SubElement(root, "Day")
-    day_node.text = str(favorited_time.day)
+    if favorited_time is not None:
+        favorited_time = datetime.datetime.strptime(favorited_time, "%Y-%m-%d %H:%M")
+        year_node = ET.SubElement(root, "Year")
+        year_node.text = str(favorited_time.year)
+        month_node = ET.SubElement(root, 'Month')
+        month_node.text = str(favorited_time.month)
+        day_node = ET.SubElement(root, "Day")
+        day_node.text = str(favorited_time.day)
     title_node = ET.SubElement(root, "Title")
     title_node.text = title
     artist_node = ET.SubElement(root, "Writer")
