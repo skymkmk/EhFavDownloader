@@ -1,7 +1,6 @@
 import asyncio
 import hashlib
 import os
-import time
 import zipfile
 from typing import Union, List, Tuple
 
@@ -10,6 +9,7 @@ from loguru import logger
 
 import cbz
 import config
+import exitcodes
 import pageparser
 import sql
 import utils
@@ -26,6 +26,7 @@ async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tupl
         img_info = await pageparser.parse_gallery_img_list(url)
         if img_info is None:
             sql.update_doujinshi_as_dmca(gal_info[0])
+            return
         for idx, ptoken in enumerate(img_info):
             ptoken = ptoken[0]
             sql.update_img_info(ptoken, idx, gal_info[0])
@@ -55,11 +56,10 @@ async def _download_img(sem: asyncio.Semaphore, path: str, gid: int, page_num: i
             f.write(img)
         sql.update_img_success(gid, ptoken, img_hash)
         sem.release()
+        return True
     except Error509:
-        logger.error("Bumped into 509. Will sleep for 20 mins.")
-        time.sleep(1200)
-        sem.release()
-        return await _download_img(sem, path, gid, page_num, ptoken, gal_name, nl)
+        logger.error("Bumped into 509.")
+        exit(exitcodes.BUMPED_509)
     except FailToDownloadIMG:
         if retry_time > 0:
             logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_time}")
@@ -69,7 +69,6 @@ async def _download_img(sem: asyncio.Semaphore, path: str, gid: int, page_num: i
             logger.error(f"Error to download {url}. Skip.")
             sem.release()
             return False
-    return True
 
 
 async def download() -> None:
@@ -86,7 +85,7 @@ async def download() -> None:
         if img_info is not None:
             if len(img_info) != 0:
                 sem = asyncio.Semaphore(config.connect_limit)
-                tasks = [asyncio.create_task(_download_img(sem, path, i[0], j[0], j[1], i[3])) for j in img_info]
+                tasks = [_download_img(sem, path, i[0], j[0], j[1], i[3]) for j in img_info]
                 success = await asyncio.gather(*tasks)
                 success = set(success)
                 if False in success:
