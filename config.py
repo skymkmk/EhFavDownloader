@@ -36,6 +36,8 @@ try:
         cookies['ipb_member_id'] = config['cookies']['ipb_member_id']
         cookies['ipb_pass_hash'] = config['cookies']['ipb_pass_hash']
         cookies['sk'] = config['cookies']['sk']
+        if 'hath_perks' in config['cookies']:
+            cookies['hath_perks'] = config['cookies']['hath_perks']
         if 'website' in config:
             if config['website'] in ['e-hentai.org', 'exhentai.org']:
                 website = config['website']
