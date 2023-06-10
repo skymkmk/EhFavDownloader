@@ -54,8 +54,8 @@ def update_metadata() -> None:
             else:
                 fav_list = []
                 for i in results[0]:
-                    doujinshi = sql.select_gallery_metadata(i[0])
-                    if len(doujinshi) == 0:
+                    doujinshi_counts = sql.select_doujinshi_counts(i[0])
+                    if doujinshi_counts == 0:
                         fav_list.append(i)
             next_url = results[1]
             # Get gallery information
