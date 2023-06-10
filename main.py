@@ -18,6 +18,8 @@ if __name__ == '__main__':
         os.mkdir(os.path.join(config.WORKING_DIR, 'logs'))
     logger.add(os.path.join(config.WORKING_DIR, "logs",
                             f"{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')}.log"), level="WARNING")
+    if '--metadata-full-update' in args:
+        config.metadata_full_update = True
     if '--update-cbz' in args or '-u' in args:
         cbz.update_cbz()
     else:

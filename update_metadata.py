@@ -49,7 +49,14 @@ def update_metadata() -> None:
             results = parse_fav_galleries_list(page)
             if results is None:
                 break
-            fav_list = results[0]
+            if config.metadata_full_update:
+                fav_list = results[0]
+            else:
+                fav_list = []
+                for i in results[0]:
+                    doujinshi = sql.select_gallery_metadata(i[0])
+                    if len(doujinshi) == 0:
+                        fav_list.append(i)
             next_url = results[1]
             # Get gallery information
             for i in range(0, (len(fav_list) - 1) // 25 + 1):

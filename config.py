@@ -23,6 +23,7 @@ connect_limit = 3
 enable_tag_translation = False
 retry_time = 3
 save_as_cbz = False
+metadata_full_update = False
 try:
     with open(os.path.join(WORKING_DIR, 'config.yaml'), encoding='UTF-8') as f:
         config: dict = yaml.safe_load(f)
