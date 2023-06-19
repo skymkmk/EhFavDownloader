@@ -49,7 +49,14 @@ def update_metadata() -> None:
             results = parse_fav_galleries_list(page)
             if results is None:
                 break
-            fav_list = results[0]
+            if config.metadata_full_update:
+                fav_list = results[0]
+            else:
+                fav_list = []
+                for i in results[0]:
+                    doujinshi_counts = sql.select_doujinshi_counts(i[0])
+                    if doujinshi_counts == 0:
+                        fav_list.append(i)
             next_url = results[1]
             # Get gallery information
             for i in range(0, (len(fav_list) - 1) // 25 + 1):
@@ -90,7 +97,7 @@ def update_metadata() -> None:
                     group = []
                     tags = []
                     language = 'ja'
-                    if 'title_jpn' in j:
+                    if 'title_jpn' in j and j['title_jpn'] != '':
                         title = j['title_jpn']
                     else:
                         title = j['title']

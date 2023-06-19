@@ -72,9 +72,13 @@ def update_doujinshi(gid: int, **kwargs) -> None:
         conn.commit()
 
 
+def select_doujinshi_counts(gid: int) -> int:
+    return conn.execute("SELECT count(*) FROM doujinshi WHERE gid = ?", (gid,)).fetchall()[0][0]
+
+
 def select_gallery_metadata(gid: int) -> Tuple[str]:
-    return conn.execute("SELECT title, artist, publisher, tag, language, favorited_time FROM doujinshi WHERE gid = ?",
-                        (gid,)).fetchall()[0]
+    return conn.execute("SELECT token, title, artist, publisher, tag, language, favorited_time FROM doujinshi "
+                        "WHERE gid = ?", (gid,)).fetchall()[0]
 
 
 def update_gallery_success(gid: int) -> None:

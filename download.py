@@ -1,16 +1,15 @@
 import asyncio
-import datetime
 import hashlib
 import os
-import time
-import xml.etree.ElementTree as ET
 import zipfile
 from typing import Union, List, Tuple
 
 import filetype.filetype
 from loguru import logger
 
+import cbz
 import config
+import exitcodes
 import pageparser
 import sql
 import utils
@@ -19,7 +18,7 @@ from utils import *
 HASH509 = '88fe16ae482faddb4cc23df15722348c'
 
 
-async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tuple[str]], None]:
+async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tuple[int, str]], None]:
     img_count = sql.select_img_counts(gal_info[0])
     if img_count != gal_info[2]:
         logger.info(f"Getting information for {gal_info[3]}")
@@ -27,6 +26,7 @@ async def _get_info(gal_info: Tuple[int, str, int, str, int]) -> Union[List[Tupl
         img_info = await pageparser.parse_gallery_img_list(url)
         if img_info is None:
             sql.update_doujinshi_as_dmca(gal_info[0])
+            return
         for idx, ptoken in enumerate(img_info):
             ptoken = ptoken[0]
             sql.update_img_info(ptoken, idx, gal_info[0])
@@ -56,11 +56,10 @@ async def _download_img(sem: asyncio.Semaphore, path: str, gid: int, page_num: i
             f.write(img)
         sql.update_img_success(gid, ptoken, img_hash)
         sem.release()
+        return True
     except Error509:
-        logger.error("Bumped into 509. Will sleep for 20 mins.")
-        time.sleep(1200)
-        sem.release()
-        return await _download_img(sem, path, gid, page_num, ptoken, gal_name, nl)
+        logger.error("Bumped into 509.")
+        exit(exitcodes.BUMPED_509)
     except FailToDownloadIMG:
         if retry_time > 0:
             logger.warning(f"Error to download {url}. Retrying. Remaining retry counts: {retry_time}")
@@ -70,7 +69,6 @@ async def _download_img(sem: asyncio.Semaphore, path: str, gid: int, page_num: i
             logger.error(f"Error to download {url}. Skip.")
             sem.release()
             return False
-    return True
 
 
 async def download() -> None:
@@ -87,7 +85,7 @@ async def download() -> None:
         if img_info is not None:
             if len(img_info) != 0:
                 sem = asyncio.Semaphore(config.connect_limit)
-                tasks = [asyncio.create_task(_download_img(sem, path, i[0], j[0], j[1], i[3])) for j in img_info]
+                tasks = [_download_img(sem, path, i[0], j[0], j[1], i[3]) for j in img_info]
                 success = await asyncio.gather(*tasks)
                 success = set(success)
                 if False in success:
@@ -99,38 +97,10 @@ async def download() -> None:
             if success:
                 if config.save_as_cbz:
                     logger.info(f"Saving {i[0]} {i[3]} as cbz...")
-                    title, artist, publisher, tag, language, favorited_time = sql.select_gallery_metadata(i[0])
-                    favorited_time = datetime.datetime.strptime(favorited_time, "%Y-%m-%d %H:%M")
-                    root = ET.Element("ComicInfo")
-                    year_node = ET.SubElement(root, "Year")
-                    year_node.text = str(favorited_time.year)
-                    month_node = ET.SubElement(root, 'Month')
-                    month_node.text = str(favorited_time.month)
-                    day_node = ET.SubElement(root, "Day")
-                    day_node.text = str(favorited_time.day)
-                    title_node = ET.SubElement(root, "Title")
-                    title_node.text = title
-                    artist_node = ET.SubElement(root, "Writer")
-                    artist_node.text = artist
-                    web_node = ET.SubElement(root, "Web")
-                    web_node.text = f"https://{config.website}/g/{i[0]}/{i[1]}"
-                    series_node = ET.SubElement(root, "Series")
-                    series_node.text = title
-                    agerating_node = ET.SubElement(root, "AgeRating")
-                    agerating_node.text = "R18+"
-                    publisher_node = ET.SubElement(root, "Publisher")
-                    publisher_node.text = publisher
-                    mange_node = ET.SubElement(root, "Manga")
-                    mange_node.text = "YesAndRightToLeft"
-                    tag_node = ET.SubElement(root, "Tags")
-                    tag_node.text = tag
-                    language_node = ET.SubElement(root, "LanguageISO")
-                    language_node.text = language
-                    tree = ET.ElementTree(root)
-                    tree.write(os.path.join(path, "ComicInfo.xml"), encoding='utf-8')
+                    cbz.config_info_xml(i[0], path)
                     file_list = [os.path.join(path, j) for j in os.listdir(path)
                                  if os.path.isfile(os.path.join(path, j))]
-                    save_path = utils.truncate_path(path, f"{i[0]}-{title}", spare_limit=4)
+                    save_path = utils.truncate_path(path, f"{i[0]}-{i[3]}", spare_limit=4)
                     save_path += '.cbz'
                     with zipfile.ZipFile(save_path, 'w') as zf:
                         for file in file_list:

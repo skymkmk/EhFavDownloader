@@ -23,6 +23,7 @@ connect_limit = 3
 enable_tag_translation = False
 retry_time = 3
 save_as_cbz = False
+metadata_full_update = False
 try:
     with open(os.path.join(WORKING_DIR, 'config.yaml'), encoding='UTF-8') as f:
         config: dict = yaml.safe_load(f)
@@ -35,6 +36,8 @@ try:
         cookies['ipb_member_id'] = config['cookies']['ipb_member_id']
         cookies['ipb_pass_hash'] = config['cookies']['ipb_pass_hash']
         cookies['sk'] = config['cookies']['sk']
+        if 'hath_perks' in config['cookies']:
+            cookies['hath_perks'] = config['cookies']['hath_perks']
         if 'website' in config:
             if config['website'] in ['e-hentai.org', 'exhentai.org']:
                 website = config['website']
