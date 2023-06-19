@@ -97,7 +97,7 @@ def update_metadata() -> None:
                     group = []
                     tags = []
                     language = 'ja'
-                    if 'title_jpn' in j:
+                    if 'title_jpn' in j and j['title_jpn'] != '':
                         title = j['title_jpn']
                     else:
                         title = j['title']
