@@ -10,7 +10,6 @@ import cbz
 import config
 import download
 import init
-import update_metadata
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -25,6 +24,7 @@ if __name__ == '__main__':
     else:
         init.init()
         if not ('--download-only' in args or '-d' in args):
+            import update_metadata
             update_metadata.update_metadata()
         asyncio.run(download.download())
         logger.success("Downloaded finished. Program will exit.")
