@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import os
+import sys
 import zipfile
 from typing import Union, List, Tuple
 
@@ -79,6 +80,26 @@ async def download() -> None:
         path = f"{i[0]}-{i[3]}"
         root = os.path.join(config.save_path, f'{i[4]}-{category_name}')
         path = truncate_path(root, path)
+        # Recover download.
+        if config.save_as_cbz:
+            file_path = utils.truncate_path(path, f"{i[0]}-{i[3]}", spare_limit=4) + '.cbz'
+            if os.path.exists(file_path) and os.stat(file_path).st_size > 102400:
+                args = sys.argv[1:]
+                if '--just-detect-cbz' in args:
+                    skip_cbz = True
+                else:
+                    while True:
+                        option = input(f"{i[3]} cbz file detected, do you wanna skip it? [N/y]: ")
+                        if option in ['Y', 'y']:
+                            skip_cbz = True
+                            break
+                        elif option in ['N', 'n']:
+                            skip_cbz = False
+                            break
+                if skip_cbz:
+                    sql.update_gallery_success(i[0])
+                    logger.info(f"Skip {i[3]}")
+                    continue
         if not os.path.exists(path):
             os.mkdir(path)
         img_info = await _get_info(i)
@@ -100,9 +121,7 @@ async def download() -> None:
                     cbz.config_info_xml(i[0], path)
                     file_list = [os.path.join(path, j) for j in os.listdir(path)
                                  if os.path.isfile(os.path.join(path, j))]
-                    save_path = utils.truncate_path(path, f"{i[0]}-{i[3]}", spare_limit=4)
-                    save_path += '.cbz'
-                    with zipfile.ZipFile(save_path, 'w') as zf:
+                    with zipfile.ZipFile(file_path, 'w') as zf:
                         for file in file_list:
                             zf.write(file, os.path.split(file)[-1])
                     sql.update_gallery_success(i[0])
