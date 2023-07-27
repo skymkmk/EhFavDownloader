@@ -55,7 +55,7 @@ def parse_fav_galleries_list(page: bytes) -> Union[Tuple[List[Tuple[int, str, st
     node_list = html.xpath(FAV_GALLERY_XPATH)
     if len(node_list) == 0:
         notice = html.xpath(FAV_GALLERY_EMPTY_XPATH)
-        if len(notice) != 1:
+        if len(notice) == 0:
             logger.error(page.decode(encoding="UTF-8", errors="ignore"))
             exit(exitcodes.CANT_PARSE_FAV_LIST)
         logger.info(notice[0])
