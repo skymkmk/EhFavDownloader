@@ -81,7 +81,7 @@ def _detect_cbz(root: str, gid: int) -> bool:
         exit(exitcodes.MULTI_GID_IN_DL_DIR_DETECTED)
     else:
         matched_dir = matched_dir[0]
-        cbzs = [os.path.join(matched_dir, i) for i in os.listdir(matched_dir) if '.cbz' in i and gid in i]
+        cbzs = [os.path.join(matched_dir, i) for i in os.listdir(matched_dir) if '.cbz' in i and str(gid) in i]
         if len(cbzs) == 0:
             return False
         elif len(cbzs) > 1:
