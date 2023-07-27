@@ -72,18 +72,37 @@ async def _download_img(sem: asyncio.Semaphore, path: str, gid: int, page_num: i
             return False
 
 
+def _detect_cbz(root: str, gid: int) -> bool:
+    matched_dir = [os.path.join(root, i) for i in os.listdir(root) if str(gid) in i]
+    if len(matched_dir) == 0:
+        return False
+    elif len(matched_dir) > 1:
+        logger.error(f"Detected multi path for {gid} in {root}. Plz deal with it.")
+        exit(exitcodes.MULTI_GID_IN_DL_DIR_DETECTED)
+    else:
+        matched_dir = matched_dir[0]
+        cbzs = [os.path.join(matched_dir, i) for i in os.listdir(matched_dir) if '.cbz' in i and gid in i]
+        if len(cbzs) == 0:
+            return False
+        elif len(cbzs) > 1:
+            logger.error(f"Detected multi cbz in {matched_dir}. Plz deal with it.")
+            exit(exitcodes.MULTI_CBZ_IN_DL_DIR_DETECTED)
+        else:
+            if os.stat(cbzs[0]).st_size > 102400:
+                return True
+            else:
+                return False
+
+
 async def download() -> None:
     gal_info = sql.select_doujinshi_for_download()
     for i in gal_info:
         category_name = sql.select_category_name(i[4])
-        # Replace the illegal characters
-        path = f"{i[0]}-{i[3]}"
         root = os.path.join(config.save_path, f'{i[4]}-{category_name}')
-        path = truncate_path(root, path)
         # Recover download.
         if config.save_as_cbz:
-            file_path = utils.truncate_path(path, f"{i[0]}-{i[3]}", spare_limit=4) + '.cbz'
-            if os.path.exists(file_path) and os.stat(file_path).st_size > 102400:
+            detected = _detect_cbz(root, i[0])
+            if detected:
                 args = sys.argv[1:]
                 if '--just-detect-cbz' in args:
                     skip_cbz = True
@@ -100,6 +119,9 @@ async def download() -> None:
                     sql.update_gallery_success(i[0])
                     logger.info(f"Skip {i[3]}")
                     continue
+        # Replace the illegal characters
+        path = f"{i[0]}-{i[3]}"
+        path = truncate_path(root, path)
         if not os.path.exists(path):
             os.mkdir(path)
         img_info = await _get_info(i)
