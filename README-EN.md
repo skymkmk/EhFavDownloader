@@ -2,11 +2,11 @@
 
 [简体中文](README.md)
 
-A script for backing up the E-Hentai favourites. File format adapted to EhViewer, automatically generates .ehviewer files for easy recovery of downloaded items.
+A script for backing up the E-Hentai favourites. Generating CBZ files compatible with Komga for easy uploading of downloaded items to Komga.
 
 ## Note for English version
 
-This copy was translated from the Chinese version by DeepL. If there is any discrepancy with the Chinese version, the Chinese version shall prevail.
+This copy was translated from the Chinese version by DeepL and ChatGPT. If there is any discrepancy with the Chinese version, the Chinese version shall prevail.
 
 ## Tips
 
@@ -23,6 +23,10 @@ You should be aware that this script is not responsible for any potential damage
 ## Download tips for the e-hentai.org site
 
 Due to the recent deployment of the CloudFlare shield on e-hentai.org, this script does not use a headless browser to execute JS scripts and cannot be bypassed at this time. Since the CloudFlare shield has a higher probability of triggering, downloading from e-hentai.org is likely to trigger a 403 denial of access. The temporary solution is to use the exhentai.org site for downloading, so please use e-hentai.org for downloading at your own discretion.
+
+## Upgrade Notice
+
+Version 0.2 has made changes to certain configuration options in the configuration file. If you are upgrading from an older version, please take note of the modifications required in the configuration file.
 
 ## How to use
 
