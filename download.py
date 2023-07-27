@@ -143,7 +143,9 @@ async def download() -> None:
                     cbz.config_info_xml(i[0], path)
                     file_list = [os.path.join(path, j) for j in os.listdir(path)
                                  if os.path.isfile(os.path.join(path, j))]
-                    with zipfile.ZipFile(file_path, 'w') as zf:
+                    save_path = utils.truncate_path(path, f"{i[0]}-{i[3]}", spare_limit=4)
+                    save_path += '.cbz'
+                    with zipfile.ZipFile(save_path, 'w') as zf:
                         for file in file_list:
                             zf.write(file, os.path.split(file)[-1])
                     sql.update_gallery_success(i[0])
