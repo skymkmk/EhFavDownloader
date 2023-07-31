@@ -1,6 +1,6 @@
 # EhFavDownloader
 
-[简体中文](README.md) [WiKi](https://ehfavdownloader.pages.dev/)
+[简体中文](README.md) | [WiKi](https://ehfavdownloader.pages.dev/)
 
 A script for backing up the E-Hentai favourites. Generating CBZ files compatible with Komga for easy uploading of downloaded items to Komga.
 

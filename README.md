@@ -1,6 +1,6 @@
 # EhFavDownloader
 
-[English](README-EN.md) [文档](https://ehfavdownloader.pages.dev/)
+[English](README-EN.md) | [文档](https://ehfavdownloader.pages.dev/)
 
 一个备份 E-Hentai 收藏夹的脚本。生成与 komga 适配的 CBZ 文件以方便将下载项上架至 komga。
 
