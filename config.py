@@ -10,7 +10,9 @@ DB_DIR = os.path.join(WORKING_DIR, 'data.db')
 cookies = {
     'ipb_member_id': None,
     'ipb_pass_hash': None,
-    'sk': None
+    'sk': None,
+    'star': None,
+    'nw': 1
 }
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 ' \
              'Safari/537.36 Edg/114.0.1823.37'
@@ -36,6 +38,7 @@ try:
         cookies['ipb_member_id'] = config['cookies']['ipb_member_id']
         cookies['ipb_pass_hash'] = config['cookies']['ipb_pass_hash']
         cookies['sk'] = config['cookies']['sk']
+        cookies['star'] = config['cookies']['star']
         if 'hath_perks' in config['cookies']:
             cookies['hath_perks'] = config['cookies']['hath_perks']
         if 'website' in config:
