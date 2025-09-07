@@ -10,14 +10,6 @@ DB_DIR = os.path.join(WORKING_DIR, 'data.db')
 cookies = {
     'ipb_member_id': None,
     'ipb_pass_hash': None,
-    'sk': None,
-    'star': None,
-    'nw': 1
-}
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 ' \
-             'Safari/537.36 Edg/114.0.1823.37'
-proxy = {
-    'enable': False
 }
 save_path = os.path.join(WORKING_DIR, 'doujinshi')
 website = 'e-hentai.org'
@@ -32,15 +24,11 @@ try:
         if 'cookies' not in config:
             logger.error('Cookies not found.')
             exit(exitcodes.NO_VALID_COOKIE_DETECTED)
-        elif not all(i in config['cookies'] for i in ['ipb_member_id', 'ipb_pass_hash', 'sk']):
-            logger.error('ipb_member_id or ipb_pass_hash or sk not found.')
+        elif not all(i in config['cookies'] for i in ['ipb_member_id', 'ipb_pass_hash']):
+            logger.error('ipb_member_id or ipb_pass_hash not found.')
             exit(exitcodes.NO_VALID_COOKIE_DETECTED)
         cookies['ipb_member_id'] = config['cookies']['ipb_member_id']
         cookies['ipb_pass_hash'] = config['cookies']['ipb_pass_hash']
-        cookies['sk'] = config['cookies']['sk']
-        cookies['star'] = config['cookies']['star']
-        if 'hath_perks' in config['cookies']:
-            cookies['hath_perks'] = config['cookies']['hath_perks']
         if 'website' in config:
             if config['website'] in ['e-hentai.org', 'exhentai.org']:
                 website = config['website']
@@ -53,16 +41,6 @@ try:
                 logger.error('Because you have configured the website as exhentai.org, we need the igneous '
                              'value. This value is not found in your configuration file.')
                 exit(exitcodes.NO_VALID_COOKIE_DETECTED)
-        if 'User-Agent' in config:
-            user_agent = config['User-Agent']
-        if 'proxy' in config:
-            if 'enable' in config['proxy']:
-                if config['proxy']['enable'] is True:
-                    if 'url' in config['proxy']:
-                        proxy['enable'] = True
-                        proxy['url'] = config['proxy']['url']
-                    else:
-                        logger.warning('Not detected proxy url. The proxy will still be disabled.')
         if 'save_path' in config:
             save_path = config['save_path']
         if 'connect_limit' in config:

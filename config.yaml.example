@@ -5,19 +5,7 @@
 cookies:
   ipb_member_id: 'YOUR_IPB_MEMBER_ID'
   ipb_pass_hash: 'YOUR_IPB_PASS_HASH'
-  sk: 'YOUR_SK'
-  star: 'YOUR_STAR'
   igneous: 'YOUR_IGNEOUS_IF_YOU_ARE_USING_EXHENTAI_SITE'
-# 如果你不知道这项是干什么的，不要动它
-# If you don't know what this is for, do not change it.
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.37
-# 如果你在中国大陆，你有很高的可能性需要设置代理。这里是一份为 Clash 编写的示例
-# There is a high probability that you will need to set up a proxy if you are in mainland China. Here is an example for Clash.
-# proxy:
-#   enable: true
-#   url: http://localhost:7890
-proxy:
-  enable: false
 save_path: 你的文件存储路径_YOUR_BACKUP_PATH
 # 保存为 CBZ 格式
 # Save as cbz
