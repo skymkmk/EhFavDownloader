@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 import lxml.html as lhtml
 from loguru import logger
 
+import time
 import config
 import exitcodes
 from utils import get
@@ -96,11 +97,17 @@ async def parse_gallery_img_list(url: str, img_list: Union[List[Tuple[str]], Non
     return img_list
 
 
-def parse_original_img_url(page: bytes) -> Tuple[str, str]:
+def parse_original_img_url(page: bytes, retry=3) -> Tuple[str, str]:
     html = lhtml.fromstring(page)
     original_url = html.xpath(IMG_ORIGINAL_URL_XPATH)
     nl = html.xpath(IMG_NL_XPATH)
     if len(original_url) == 0 or len(nl) == 0:
-        logger.error("Error to parse img page. Please contact skymkmk for more information.")
-        exit(exitcodes.CANT_PARSE_IMG_PAGE)
+        if retry > 0:
+            time.sleep(3)
+            logger.warning(f"retry original {retry}")
+            return parse_original_img_url(page, retry - 1)
+        else:
+            logger.error("Error to parse img page. Please contact skymkmk for more information.")
+            print(page)
+            exit(exitcodes.CANT_PARSE_IMG_PAGE)
     return original_url[0], SEARCH_NL.findall(nl[0])[0]
