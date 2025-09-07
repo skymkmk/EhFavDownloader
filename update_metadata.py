@@ -4,7 +4,8 @@ import os.path
 import re
 import time
 
-from iso639 import languages
+from iso639 import Lang
+from iso639.exceptions import InvalidLanguageValue
 from loguru import logger
 
 import config
@@ -107,8 +108,10 @@ def update_metadata() -> None:
                             namespace, tag = SEARCH_TAG_NAMESPACE.findall(k)[0]
                             if namespace == "language":
                                 try:
-                                    language = languages.get(name=tag.capitalize()).alpha2
-                                except KeyError:
+                                    language = Lang(tag.capitalize()).pt1
+                                except InvalidLanguageValue:
+                                    if tag != "translated":
+                                        logger.warning(f"Unknown language tag {tag}")
                                     pass
                             elif namespace == "artist":
                                 _append_metadata(artist, namespace, tag)
